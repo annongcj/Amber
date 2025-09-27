@@ -1,0 +1,120 @@
+module test_xray_interface2
+  
+  use xray_pure_utils, only : real_kind
+  use xray_unit_cell_module
+  use funit
+  
+  implicit none
+  
+  integer, parameter, private :: rk = real_kind
+  real(real_kind), parameter :: tolerance = 1e-9  ! Absolute tolerance
+  
+  integer, parameter :: n_hkl = 4
+  integer, parameter :: n_atoms = 5
+  integer, parameter :: n_scatter_types = 2
+  integer, parameter :: hkl(3, n_hkl) = reshape([ [1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6] ], shape(hkl), order = [2, 1])
+  logical, parameter :: work_flag(n_hkl) = [ .TRUE., .FALSE., .TRUE., .FALSE. ]
+  complex(real_kind), parameter :: Fobs(n_hkl) = [ (1.0_rk, 1.0_rk), (1.0_rk, 0.5_rk), (2.0_rk, 1.5_rk), (1.5_rk, 2.0_rk)]
+  real(real_kind), parameter :: sigma_Fobs(n_hkl) = [ 1.0_rk, 1.0_rk, 1.0_rk, 1.0_rk]
+  
+  real(real_kind), parameter :: scatter_coefficients(2, 5, n_scatter_types) = reshape([ &
+      &  [ [1.0_rk, 2.0_rk], [2.0_rk, 3.0_rk], [3.0_rk, 4.0_rk], [2.0_rk, 4.0_rk], [5.0_rk, 6.0_rk]  ], &
+          &  [ [1.5_rk, 2.5_rk], [2.5_rk, 3.5_rk], [3.5_rk, 4.5_rk], [2.5_rk, 4.5_rk], [5.5_rk, 6.5_rk]  ] &
+      & ], [2, 5, 2], order = [3, 2, 1])
+  real(real_kind), parameter :: atom_b_factors(n_atoms) = [ 1.0_rk, 2.0_rk, 3.0_rk, 0.1_rk, 0.5_rk ]
+  real(real_kind), parameter :: atom_occupancy(n_atoms) = [ 1.0_rk, 1.0_rk, 1.0_rk, 1.0_rk, 1.0_rk ]
+  integer, parameter :: atom_scatter_type(n_atoms) = [ 1, 2, 2, 1, 2 ]
+  logical, parameter :: atom_selection(n_atoms) = [ .TRUE., .FALSE., .TRUE., .FALSE., .TRUE. ]
+  integer, parameter :: atom_atomic_number(n_atoms) = [ 1, 12, 16, 12, 16 ]
+  
+  integer, parameter :: mask_update_period = 100
+  integer, parameter :: scale_update_period = 100
+
+  real(real_kind) :: k_sol, b_sol
+
+contains
+  
+  @test
+  subroutine test_regression_ml()
+    use xray_interface2_module, only : init_interface2 => init, finalize_interface2 => finalize, calc_force
+    
+    type(unit_cell_t) :: unit_cell
+    real(real_kind) :: energy
+    real(real_kind) :: xyz(3, n_atoms)
+    real(real_kind) :: force(3, n_atoms)
+    real(real_kind) :: weight = 1.0
+    integer :: i, j
+    
+    do j = 1, n_atoms
+      xyz(:, j) = mod([ j * 7.0_rk, j * 13.0_rk, j * 31.0_rk], 10.0_rk)
+    end do
+    
+    call unit_cell%init(7.0_rk, 13.0_rk, 17.0_rk, 90.0_rk, 70.0_rk, 50.0_rk)
+    
+    do i = 0, 9
+      force = 0
+      call init_interface2('ml', 'afonine-2013', hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
+          &   atom_b_factors, atom_occupancy, atom_scatter_type, atom_selection, atom_atomic_number, 1, 1, 1, &
+          &    k_sol, b_sol, 1.11_rk, 0.9_rk)
+      call calc_force(xyz, i, weight, force, energy)
+      call finalize_interface2()
+
+      @assertEqual(force(:, 1), [-0.27018904375861613_rk, 0.13228726980059730_rk, 0.042671002461954856_rk], tolerance=tolerance)
+      @assertEqual(force(:, 3), [57.990446883889511_rk, -0.42038927895058720_rk, 30.334356164521303_rk], tolerance=tolerance)
+      @assertEqual(force(:, 5), [-57.720257840130422_rk, 0.28810200914993800_rk, -30.377027166983080_rk], tolerance=tolerance)
+      ! No force on unselected atoms
+      @assertEqual(force(:, 2), [0.0_rk, 0.0_rk, 0.0_rk], tolerance=tolerance)
+      @assertEqual(force(:, 4), [0.0_rk, 0.0_rk, 0.0_rk], tolerance=tolerance)
+      
+      @assertEqual(energy, 36.256109033100131_rk, tolerance=tolerance)
+
+      ! The following values were prior to more-cctbx-style-sf-scaling branch introduction
+      ! @assertEqual(force(:, 1), [1.7205390566085923_rk, -0.18648154563897876_rk, 0.65432579339462538_rk], tolerance=tolerance)
+      ! @assertEqual(force(:, 3), [4.1948910023518629_rk, -0.37658641300226081_rk, 1.7055649243307647_rk], tolerance=tolerance)
+      ! @assertEqual(force(:, 5), [-7.5331503696349609_rk, 0.82173356697668443_rk, -2.8574671914364029_rk], tolerance=tolerance)
+      ! @assertEqual(energy, 6.3235091367772185_rk, tolerance=tolerance)
+    end do
+  
+  end subroutine test_regression_ml
+  
+  
+  @test
+  subroutine test_regression_ls()
+    use xray_interface2_module, only : init_interface2 => init, finalize_interface2 => finalize, calc_force
+    
+    type(unit_cell_t) :: unit_cell
+    real(real_kind) :: energy
+    real(real_kind) :: xyz(3, n_atoms)
+    real(real_kind) :: force(3, n_atoms)
+    real(real_kind) :: weight = 1.0
+    integer :: i, j
+    
+    do j = 1, n_atoms
+      xyz(:, j) = mod([ j * 17.0_rk, j * 13.0_rk, j * 31.0_rk], 10.0_rk)
+    end do
+    
+    call unit_cell%init(7.0_rk, 13.0_rk, 17.0_rk, 90.0_rk, 70.0_rk, 50.0_rk)
+    
+    do i = 0, 9
+      force = 0
+      call init_interface2('ls', 'afonine-2013', hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
+          &   atom_b_factors, atom_occupancy, atom_scatter_type, atom_selection, atom_atomic_number, 1, 1, 1, &
+          &   k_sol, b_sol, 1.11_rk, 0.9_rk)
+      call calc_force(xyz, i, weight, force, energy)
+      call finalize_interface2()
+      
+      ! Disabled due to inaccuracies (LS target produces too small gradients/energy)
+!      @assertRelativelyEqual(force(:, 1), [1.3542150570530519E-012_rk, 7.7578275301096542E-014_rk, 1.0763910497934607E-012_rk], tolerance=tolerance)
+!      @assertRelativelyEqual(force(:, 3), [1.1423783410066309E-012_rk, -3.0133854013677324E-015_rk,-4.1810430343060536E-014_rk], tolerance=tolerance)
+!      @assertRelativelyEqual(force(:, 5), [-6.0744179172117640E-012_rk, -3.5258441766168479E-013_rk,-4.8920746174710699E-012_rk], tolerance=tolerance)
+      ! No force on unselected atoms
+      @assertEqual(force(:, 2), [0.0_rk, 0.0_rk, 0.0_rk], tolerance=tolerance)
+      @assertEqual(force(:, 4), [0.0_rk, 0.0_rk, 0.0_rk], tolerance=tolerance)
+      
+!      @assertRelativelyEqual(energy, 9.5440217093784542E-030_rk, tolerance=tolerance)
+    end do
+    
+  end subroutine test_regression_ls
+
+end module test_xray_interface2
+

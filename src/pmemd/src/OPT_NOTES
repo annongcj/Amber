@@ -1,0 +1,70 @@
+
+III. Some Information on Parallel Performance Tuning Namelist Variables.
+
+New algorithms have been introduced in pmemd 10 with the goal of further
+extending the scaling capabilities of the code. These algorithms may be
+controlled to some extent by five &ewald namelist variables; however these
+variables are assigned default values that are determined taking into
+consideration run conditions, and in general it is probably best that the user
+just use the defaults and not attempt to make adjustments.  However, in some
+instances, fine tuning may yield slightly better performance.  The variables
+involved are described in a bit more detail below, should a user want to
+experiment:
+
+ block_fft =  0 - use slab fft
+           =  1 - use block fft; requires at least 4 processors, and not
+                  permitted for minimizations or if nrespa > 1.
+
+ When using block fft's, we essentially start with a collection of fft
+ x-y slabs, and further divide each slab into fft_blk_y_divisor "blocks" in
+ the y dimension.  Thus each "block is a collection contiguous x-runs. The
+ y divisor must be a value between 2 and nfft2, where nfft2 is the nfft2 value
+ AFTER the axis optimization operation has been performed if it is allowed
+ (thus it is really only safe to either use min(nfft1,nfft2,nfft3), or turn
+ off axis optimization, or think carefully about what axis optimization will
+ actually do...  In all instances tested so far, relatively small values work
+ best for fft_blk_y_divisor.  This value is used only if block_fft .eq. 1.
+
+ fft_blk_y_divisor = 2 .. nfft2 (after axis optimization reorientation);
+                     default=2 or 4 depending on numtasks.
+
+ excl_recip = 0..1 - Exclusive reciprocal tasks flag.  This flag, when 1,
+                     specifies that tasks that do reciprocal force calcs will
+                     not also do direct force calculations.  This has some
+                     benefits at higher task count.  At lower task count,
+                     setting this flag can result in significant
+                     underutilization of reciprocal tasks.  This flag will
+                     automatically be cleared if block fft's are not in use.
+
+ excl_master = 0..1 - Exclusive master task flag.  This flag, when 1,
+                      specifies that the master task will not do force and
+                      energy calculations.  At high scaling, what this does
+                      is insure that no tasks are waiting for the master to
+                      initiate collective communications events.  The master
+                      is thus basically dedicated to handling loadbalancing and 
+                      output.  At lower task count, this is obviously
+                      wasteful.  This flag will automatically be cleared if
+                      block fft's are not in use or if excl_recip .ne. 1.
+
+                      AND NOTE - when block fft's are in use, that implies that
+                      you are not doing a minimization and are not using
+                      nrespa > 1.
+
+ atm_redist_freq = 16..1280 - The frequency (in pairlist build events) for
+                              reassigning atom ownership to tasks.  As a run
+                              progresses, diffusion causes the atoms originally
+                              collocated and assigned to one task to occupy a
+                              larger volume.  With time, this starts to cause
+                              a higher communications load, though the increased
+                              load is lower than one might expect.  Currently,
+                              by default we reassign atoms to tasks every 320
+                              pairlist builds at low to medium task count and
+                              we reassign atoms to tasks every 32 pairlist
+                              builds at higher task counts (currently defined
+                              as >= 96 tasks, redefinable in config.h).  The
+                              user can however specify the specific value he
+                              desires.  At low task count, frequent atom
+                              redistribution tends to have a noticeable cost
+                              and little benefit. At higher task count, the
+                              cost is lower and the benefit is higher.
+

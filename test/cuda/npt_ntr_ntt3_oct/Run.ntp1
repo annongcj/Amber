@@ -1,0 +1,76 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+protein: density
+ &cntrl
+        imin   = 0,
+        irest  = 1,
+        ntx    = 5,
+        ntb    = 2,
+        cut    = 12,
+        ntr    = 1,
+        ntp    = 1,
+        ntc    = 2,
+        ntf    = 2,
+        temp0  = 300.0,
+        ntt    = 3,
+        gamma_ln = 2.0,
+        nstlim = 40, dt = 0.001,
+        ntpr = 1, ntwx = 0, ntwr = 10000, ig=71277,
+ /
+ &ewald
+  netfrc=0,
+ /
+Keep protein fixed with weak restraints
+10.0
+RES 1 169
+END
+END
+EOF
+
+set output = mdout.ntp1
+
+set output_save = $output.GPU_$1
+
+touch dummy
+$DO_PARALLEL $sander -O -o $output -r restrt -x mdcrd -ref inpcrd < dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+#This test is a pain because the pressure and virial are VERY
+#sensitive to precision so we will use -8 and -5 respectively here.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../dacdif -f -r 1.0e-7 $output_save $output
+else
+  #5 sig figs
+  ../../dacdif -f -r 5.0e-5 $output_save $output
+endif
+
+/bin/rm -f mdin logfile mdinfo dummy restrt mdcrd
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)

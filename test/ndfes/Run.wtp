@@ -1,0 +1,20 @@
+#!/bin/csh -f
+#TEST-PROGRAM ndfes
+#TEST-DESCRIP WTP
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+${AMBERHOME}/bin/ndfes --mbar --nham=2 -w 0.10 -c wtp.chk wtp.metafile > wtp.out
+${AMBERHOME}/bin/ndfes-PrintFES.py wtp.chk > wtp.dat
+
+set output=wtp.dat
+
+../dacdif $output.save $output
+
+rm -f wtp.chk wtp.out
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)

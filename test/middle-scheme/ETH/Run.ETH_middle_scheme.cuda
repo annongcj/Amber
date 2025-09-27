@@ -1,0 +1,62 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP canonical ensemble, periodic boundaries, Ethaline
+#TEST-PURPOSE regression, basic, pedagogical
+#TEST-STATE   ok
+
+
+if( $?TESTsander ) then
+    set sander = $TESTsander
+else
+    set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+endif
+
+setenv DO_PARALLEL " "
+
+cat > mdin <<EOF
+ MD for Ethaline (1:2 ratio Chcl and EG)
+ &cntrl
+   ntx=5, irest=1,                   ! read coordinates
+   ntb = 1,                          ! constant volume
+   nstlim=10,                        ! MD for 10 steps
+   ntpr=1, ntwr=10,                  ! output settings
+   dt=0.0005,                        ! timestep in ps 
+   ig=71277,                         ! random seed
+   cut = 10.0,                       ! non-bond cut off
+   temp0 = 298.15, tempi = 298.15,   ! temerature settings
+   ischeme = 1,                      !! Leapfrog middle scheme
+   ithermostat = 1,                  !! Langevin thermostat
+   therm_par = 100,                  !! thermostat parameter in ps^-1
+ /
+ &ewald
+   nfft1=60, nfft2=60, nfft3=60, netfrc=0, skinnb = 2.0
+ /
+EOF
+
+set output = mdout.ETH_middle_scheme
+
+set output_save = $output.GPU_$1
+
+touch dummy
+$sander -O -i mdin -c inpcrd -o mdout.ETH_middle_scheme < dummy || goto error
+
+if ( "$1" == "DPFP" ) then
+  ../../dacdif -r 1.0e-7 $output_save $output
+else
+  ../../dacdif -r 1.0e-5 $output_save $output
+endif
+
+/bin/rm -f mdin logfile mdinfo dummy mdcrd restrt
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+
+

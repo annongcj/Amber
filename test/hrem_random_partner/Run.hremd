@@ -1,0 +1,46 @@
+#!/bin/sh
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, advanced
+#TEST-STATE   undocumented
+
+. ../program_error.sh
+sander=${AMBERHOME}/bin/sander.MPI
+
+if [ ! -z "$TESTsander" ]; then
+   sander=$TESTsander
+fi
+
+if [ -z "$DO_PARALLEL" ]; then
+   echo "REM requires a parallel environment!"
+   exit 0
+fi
+
+numprocs=`$DO_PARALLEL ../numprocs`
+
+if [ "`basename $sander`" = 'sander.MPI' ]; then
+   if [ "$numprocs" -ne 8 -a "$numprocs" -ne 16 ]; then
+      echo "This test case requires a multiple of 8 MPI threads!"
+      echo "Only using "$numprocs""
+      exit 0
+   fi
+else
+   if [ "$numprocs" -ne 16 ]; then
+      echo "This test case requires 16 MPI threads!"
+      exit 0
+   fi
+fi
+
+$DO_PARALLEL $sander -O -ng 8 -groupfile groupfile -rem 3 -remlog rem.log -remrandompartner 1 < /dev/null || error
+
+if [ "`basename $sander`" = 'sander.MPI' ]; then
+    ../dacdif rem.log.save rem.log
+    ../dacdif mdout.rep.002.save mdout.rep.002
+    ../dacdif dumpave.dat.rep.002.save dumpave.dat.rep.002
+else
+    ../dacdif rem.log.pmemd.save rem.log
+    ../dacdif mdout.rep.002.pmemd.save mdout.rep.002
+    ../dacdif dumpave.dat.rep.002.pmemd.save dumpave.dat.rep.002
+fi
+
+/bin/rm -f mdout.rep.00[1345678] rst7.rep.00? logfile.00? mdinfo.00? dumpave.dat.rep.00[1345678] mdcrd.00?

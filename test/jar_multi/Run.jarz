@@ -1,0 +1,80 @@
+#!/bin/csh -f
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+if( ! $?TESTsander ) set TESTsander = "${AMBERHOME}/bin/sander.MPI"
+ 
+if( ! $?DO_PARALLEL ) then
+    echo "This test must be run in parallel - skipping."
+    exit(0)
+endif
+
+set numgroups = 2
+set numprocs  = `$DO_PARALLEL ../numprocs`
+
+if ( "$numprocs" % $numgroups != 0 ) then
+    echo "This test requires a multiple of $numgroups processors! " \
+         "$numprocs were specified - skipping."
+    exit(0)
+endif
+
+set output0 = mdout.jar.000
+set output1 = mdout.jar.001
+
+cat > gbin <<EOF
+ test of Jarzynski for a distance in DNA 
+ &cntrl                                                                        
+   nstlim=1000, cut=12.0, igb=1, saltcon=0.1,
+   ntpr=100, ntwr=100000, ntt=3, gamma_ln=5.0,
+   ntx=5, irest=1, ntwx=0, ig = 99931, 
+   ntc=2, ntf=2, tol=0.000001,
+   dt=0.002, ntb=0, tempi=300., temp0=300.,
+   jar=1,
+ /
+ &wt type='DUMPFREQ', istep1=1 /
+ &wt type='END'   /
+EOF
+/bin/cp -p gbin gbin.001
+/bin/mv    gbin gbin.000
+
+echo "DISANG=dist.RST" >> gbin.000
+echo "DUMPAVE=dist_vs_t.000" >> gbin.000
+echo "LISTIN=POUT" >> gbin.000
+echo "LISTOUT=POUT" >> gbin.000
+
+echo "DISANG=dist.RST" >> gbin.001
+echo "DUMPAVE=dist_vs_t.001" >> gbin.001
+echo "LISTIN=POUT" >> gbin.001
+echo "LISTOUT=POUT" >> gbin.001
+
+cat > groupfile <<EOF
+-O -i gbin.000 -p prmtop -c dna.crd.000 -r restart.000 -o $output0 -x mdcrd.0
+-O -i gbin.001 -p prmtop -c dna.crd.001 -r restart.001 -o $output1 -x mdcrd.1
+EOF
+
+$DO_PARALLEL $TESTsander -ng $numgroups -groupfile groupfile < /dev/null \
+    || goto error
+
+../dacdif -r 1.e-4 $output0.save $output0
+../dacdif -r 1.e-4 $output1.save $output1
+../dacdif dist_vs_t.000.save dist_vs_t.000
+../dacdif dist_vs_t.001.save dist_vs_t.001
+
+/bin/rm -f gbin.00? mdinfo.00? restart.00? groupfile
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,46 @@
+#!/bin/csh -f
+#TEST-PROGRAM edgembar
+#TEST-DESCRIP EDGEMBAR
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#
+# Pass the full path of the python interpreter as an argument
+#
+set PYTHON="$1"
+
+#
+# create p38a_2t~p38a_2j.xml
+#
+
+${PYTHON} ./edgembar-writeinput.py || goto error
+
+#
+# create p38a_2t~p38a_2j.py
+#
+
+${AMBERHOME}/bin/edgembar --no-auto --nboot=0 --ncon=0  p38a_2t~p38a_2j.xml || goto error
+
+#
+# create p38a_2t~p38a_2j.txt
+#
+
+set output=p38a_2t~p38a_2j.txt
+
+${PYTHON} ./p38a_2t~p38a_2j.py --brief > $output || goto error
+
+#
+# compare with p38a_2t~p38a_2j.txt.save
+#
+
+if ( -x ../dacdif ) then
+    ../dacdif $output.save $output
+endif
+
+rm -f p38a_2t~p38a_2j.py p38a_2t~p38a_2j.txt p38a_2t~p38a_2j.xml
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)

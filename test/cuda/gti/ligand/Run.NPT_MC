@@ -1,0 +1,98 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP signle ion non-softcore TI
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+echo `pwd`
+
+if ( "$1" == "CPU" ) then
+   set sander = "mpiexec -np 20 ${AMBERHOME}/bin/pmemd.MPI"
+else
+   set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+endif
+
+
+cat > mdin <<EOF
+NVT MD w/No position restraints and PME (sander)
+ &cntrl
+  ntx    = 5,
+  irest  = 0,
+  ntpr   = 2,
+  ntwx   = 10000,
+  ntwe   = 500,
+  ntwr   = 0,
+
+  ntxo   = 1,
+  ioutfm = 0,
+
+  cut    = 8.0,
+  iwrap  = 1,
+  nsnb   = 10,
+  vlimit = 20,
+  ig = 372376,
+
+  temp0  = 300.0,
+  tempi  = 300.0,
+  tautp  = 2.0,
+
+!gti-specfic
+!  gnet_force=1,
+!NVE
+!  ntt    = 0,
+!  ntb=1, ntp=0,
+!NVT
+!  ntt    = 3,
+!  ntb=1, ntp=0,
+
+!NPT
+  ntb=2, ntp=1,
+!NPT-BR
+!  barostat = 1,
+!NPT-MC
+   barostat = 2, mcbarint=10,
+
+
+  nstlim = 100,
+  t      = 0.0,
+  nscm   = 1000,
+  dt     = 0.001,
+
+  ntf    = 1,
+  ntc    = 2,
+  tol    = 0.000001,
+
+  icfe=1, clambda=0.35,
+  timask1=":L0",
+  timask2=":L1",
+&end
+ &ewald
+   skinnb=1, nfft1=32, nfft2=32, nfft3=60, netfrc=0,
+ /
+EOF
+
+set output = md_NPT_MC.o
+
+set output_save = $output.$1
+
+touch dummy
+$sander -O -i mdin -c inpcrd -p prmtop -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../dacdif -r 1.0e-7 $output_save $output
+else
+  #5 sig figs
+  ../../../dacdif -r 1.0e-5 $output_save $output
+endif
+
+/bin/rm -f mdin restrt mdinfo dummy
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+

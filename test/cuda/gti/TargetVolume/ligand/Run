@@ -1,0 +1,80 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP signle ion non-softcore TI
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+echo `pwd`
+
+
+if ( "$1" == "CPU" ) then
+   set sander = "mpiexec -np 20 ${AMBERHOME}/bin/pmemd.MPI"
+else
+   set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+endif
+
+
+cat > mdin <<EOF
+Heating up the system equilibration stage 1
+ &cntrl
+  nstlim=500, dt=0.001, ntx=5, irest=1, ntpr=100, ntwr=1000, ntwx=100,
+  tempi =5.0, temp0=300.0, ntt=3, gamma_ln=2, tautp=2.0, ig=209858,
+  ntb=2, ntp=4,
+  barostat=2,
+  ntc=1, ntf=1,
+  tishake=1,
+ntxo=1,
+ioutfm = 0,
+ifsc = 1
+icfe = 1
+clambda = 1.00000000
+timask1 = "@1-35"
+timask2 = "@36-76"
+crgmask = ""
+scmask1 = "@CV1,HV1,HV2,HV3"
+scmask2 = "@CO1,CO2,CO3,HO1,HO2,HO3,HO4,HO5,HO6,HO7"
+vlimit=20,
+gti_add_sc = 1
+gti_cut = 1
+gti_output = 1
+gti_lam_sch = 1
+gti_ele_sc = 1
+gti_vdw_sc = 1
+gti_cut_sc = 2
+gti_ele_exp=2,
+gti_vdw_exp=2,
+gti_scale_beta=1,
+scalpha=0.5,
+scbeta=1.0,
+
+&end
+&ewald
+target_a=44, target_b=40, target_c=39, target_n=100,
+&end
+EOF
+
+set output = md.o
+
+set output_save = $output.$1
+
+touch dummy
+$sander -O -i mdin -c inpcrd -p prmtop -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../../dacdif -r 1.0e-7 $output_save $output
+else
+  #5 sig figs
+  ../../../../dacdif -r 1.0e-5 $output_save $output
+endif
+
+/bin/rm -f mdin restrt mdinfo dummy
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+

@@ -1,0 +1,52 @@
+#!/bin/sh
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, advanced
+#TEST-STATE   undocumented
+
+. ../../program_error.sh
+sander=${AMBERHOME}/bin/sander.MPI
+
+if [ ! -z "$TESTsander" ]; then
+   sander=$TESTsander
+fi
+
+if [ -z "$DO_PARALLEL" ]; then
+   echo "REM requires a parallel environment!"
+   exit 0
+fi
+
+numprocs=`$DO_PARALLEL ../../numprocs`
+
+if [ "`basename $sander`" = 'sander.MPI' ]; then
+   if [ "$numprocs" -ne 8 -a "$numprocs" -ne 16 ]; then
+      echo "This test case requires a multiple of 8 MPI threads!"
+      echo "Only using "$numprocs""
+      exit 0
+   fi
+else
+   if [ "$numprocs" -ne 16 ]; then
+      echo "This test case requires 16 MPI threads!"
+      exit 0
+   fi
+fi
+
+$DO_PARALLEL $sander -O -ng 8 -groupfile groupfile -remd-file remd.dim.ephtremd -remlog rem.log < /dev/null || error
+
+if [ "`basename $sander`" = 'sander.MPI' ]; then
+    ../../dacdif rem.log.1.save rem.log.1
+    ../../dacdif rem.log.2.save rem.log.2
+    ../../dacdif rem.log.3.save rem.log.3
+    ../../dacdif mdout.rep.001.save mdout.rep.001
+    ../../dacdif cpout.000.save cpout.000
+    ../../dacdif ceout.000.save ceout.000
+else
+    ../../dacdif rem.log.1.pmemd.save rem.log.1
+    ../../dacdif rem.log.2.pmemd.save rem.log.2
+    ../../dacdif rem.log.3.pmemd.save rem.log.3
+    ../../dacdif mdout.rep.001.pmemd.save mdout.rep.001
+    ../../dacdif cpout.000.pmemd.save cpout.000
+    ../../dacdif ceout.000.pmemd.save ceout.000
+fi
+
+/bin/rm -f mdout.rep.00[2345678] rst7.rep.00? logfile.00? mdinfo.00? c?out.00[1234567] c?restrt.00?

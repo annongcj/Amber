@@ -1,0 +1,36 @@
+#!/bin/csh -f
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+if( ! $?TESTsander ) set TESTsander = "../../../sander"
+
+if( ! $?DO_PARALLEL ) then
+        setenv DO_PARALLEL " "
+endif
+
+set prmtop = "fake_prmtop.parm7"
+set crd = "../rst7"
+if( $#argv > 0 ) then
+   set prmtop = "$1"
+endif
+
+cat > gbin <<EOF
+md.in: This input is for testing
+ &cntrl
+  imin = 0, nstlim = 10, dt = 0.002,
+  ntx = 1, irest = 0, ig = 1, 
+  ntt = 1, tol = 0.000001,
+  temp0 = 300, tempi=300,
+  ntc = 2, ntf = 1, ntb = 0,
+  ntwx = 1, ntwr =1, ntpr = 1,
+  cut = 1000.0,
+  igb = 8,
+/
+EOF
+
+set output = mdout.3p4a
+
+$DO_PARALLEL $TESTsander -O -p $prmtop -i gbin -c $crd  -o $output || goto error
+

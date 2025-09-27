@@ -1,0 +1,79 @@
+#!/bin/sh
+#TEST-PROGRAM sander pmemd
+#TEST-DESCRIP Testing nmropt restraints on CoM angle and torsion
+#TEST-PURPOSE pedagogical regession advanced
+#TEST-STATE   ok
+
+. ../../../program_error.sh
+
+if [ -z "$TESTsander" ]; then
+   TESTsander="${AMBERHOME}/bin/sander"
+fi
+
+if [ -z "$DO_PARALLEL" ]; then
+   export DO_PARALLEL=" "
+fi
+
+cat > mdin <<EOF
+ Test of nmropt on COM angle and torsion 
+ &cntrl                                                                        
+   ig=71277,       ! set random seed
+   nstlim = 20,    ! 50 steps
+   igb=5,          ! gb solvent
+   ntb=0,          ! no periodic boundaries
+   ntx=5,          ! restart with velocities
+   irest=1, 
+   ntpr=1,         ! mdout
+   dt=0.001,       ! 1 fs timestep
+   ntt=1,          !  
+   ntc=2,          ! use shake
+   ntf=2,  
+   tol=0.000001,
+   ntwr = 200,     ! dont write rst
+   nmropt=1, 
+ /
+ &wt type='DUMPFREQ', istep1=2  /
+ &wt type='END'   /
+DISANG=angtorCOM_gb.RST
+DUMPAVE=angtorCOM_gb
+LISTIN=POUT
+LISTOUT=POUT
+EOF
+
+cat > angtorCOM_gb.RST << EOF
+# com angle and torsion restraints for gb
+#COM Angle
+&rst
+iat=-1,-1,-1,
+igr1=490,492,504,889,891,911,913,915,928,1179,1181,1193,1195,1197,1212,
+igr2=17,19,32,34,36,51,1498,1500,1510,1512,1514,1529,1582,1584,1597,1599,1601,1616,3064,3066,3076,3078,3080,3095,
+igr3=2056,2058,2070,2455,2457,2477,2479,2481,2494,2745,2747,2759,2761,2763,2778,
+r1=25.0,r2=75.0,r3=75.0,r4=125.0,rk2=2400.0,rk3=2400.0,
+&end
+#COM Torsion
+&rst
+iat=-1,-1,-1,-1,
+igr1=765,767,770,772,774,777,805,807,810,812,814,830,
+igr2=1354,1356,1376,1378,1380,1390,1392,1394,1409,1411,1413,1428,1430,1432,1442,1444,1446,1459,
+igr3=2920,2922,2942,2944,2946,2956,2958,2960,2975,2977,2979,2994,2996,2998,3008,3010,3012,3025,
+igr4=2331,2333,2336,2338,2340,2343,2371,2373,2376,2378,2380,2396,
+r1=-78.0,r2=4.0,r3=4.0,r4=82.0,rk2=1200.0,rk3=1200.0,
+&end
+EOF
+
+$DO_PARALLEL $TESTsander -O -c ../hivprotease_gb.inpcrd -p ../hivprotease_gb.prmtop \
+                            < /dev/null || error
+        
+../../../dacdif -a 0.0002 mdout.save mdout
+../../../dacdif angtorCOM_gb.save angtorCOM_gb
+
+/bin/rm -f mdin restrt mdinfo  angtorCOM_gb.RST logfile profile_mpi
+
+exit 0
+
+
+
+
+
+
+

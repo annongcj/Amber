@@ -1,0 +1,938 @@
+
+          -------------------------------------------------------
+          Amber 20 PMEMD                              2020
+          -------------------------------------------------------
+
+| PMEMD implementation of SANDER, Release 18
+
+|  Executable base on git commit: a3fedaca6c085820c268e3deb96a5cfe961f9663
+|  Compiled date/time: Wed Feb 24 19:37:56 2021
+|  Compiled on:  rioja-rutgers-edu
+|  Compiled by:  taisung
+
+| Run on 07/06/2021 at 09:58:57
+
+|   Executable path: /usr/people/taisung/amber/amber_lbsr_test/bin/pmemd.cuda_DPFP
+| Working directory: /usr/people/taisung/amber/amber_lbsr_test/test/cuda/gti/SC_Correction/methane_2_methanol
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|   MDIN: mdin                                                                  
+|  MDOUT: md_NVT_ntt3_SC_-1.o                                                   
+| INPCRD: inpcrd                                                                
+|   PARM: prmtop                                                                
+| RESTRT: restrt                                                                
+|   REFC: refc                                                                  
+|  MDVEL: mdvel                                                                 
+|   MDEN: mden                                                                  
+|  MDCRD: mdcrd                                                                 
+| MDINFO: mdinfo                                                                
+|  MDFRC: mdfrc                                                                 
+
+
+ Here is the input file:
+
+TI/FEP, NpT, vdW+bonded transformation                                         
+ &cntrl                                                                        
+ ! please adjust namelist parameters to your needs!                            
+                                                                               
+ ! parameters for general MD                                                   
+ imin = 0, nstlim = 500, irest = 0, ntx = 1, dt = 0.001,                       
+ ntt = 3, temp0 = 298.0, gamma_ln = 1.0, ig = 197127,                          
+ ntb=1, ntp=0,                                                                 
+ !ntb = 2,                                                                     
+ !ntp = 1, barostat = 1, pres0 = 1.01325, taup = 2.0,                          
+ ntwe = 10000, ntwx = 10000, ntpr = 100, ntwr = 100, ntave = 50000,            
+ ioutfm = 1, iwrap = 1, ntxo = 2,                                              
+                                                                               
+ ! parameters for alchemical free energy simulation                            
+ ntc = 2, ntf = 1,                                                             
+ noshakemask = ':1,2',                                                         
+                                                                               
+ icfe = 1, ifsc = 1, clambda = 0.50, scalpha = 0.5, scbeta = 12.0,             
+                                                                               
+  gti_add_sc=-1,                                                               
+  gti_output=1,                                                                
+                                                                               
+ timask1=':1', timask2=':2',                                                   
+scmask1='',                                                                    
+scmask2=':2@H6',                                                               
+ crgmask = '',                                                                 
+ /                                                                             
+ &ewald                                                                        
+ /                                                                             
+
+
+| irandom = 1, using AMBER's internal random number generator (default).
+ 
+|--------------------- INFORMATION ----------------------
+| GPU (CUDA) Version of PMEMD in use: NVIDIA GPU IN USE.
+|                    Version 18.0.0
+| 
+|                      03/25/2018
+| 
+| Implementation by:
+|                    Ross C. Walker     (SDSC)
+|                    Scott Le Grand     (nVIDIA)
+| 
+| Version 18 performance extensions by:
+|                    David Cerutti     (Rutgers)
+| 
+| Precision model in use:
+|      [DPFP] - Double Precision Forces, 64-bit Fixed point
+|               Accumulation.
+| 
+|--------------------------------------------------------
+ 
+|----------------- CITATION INFORMATION -----------------
+|
+|    When publishing work that utilized the CUDA version
+|    of AMBER, please cite the following in addition to
+|    the regular AMBER citations:
+|
+|  - Romelia Salomon-Ferrer; Andreas W. Goetz; Duncan
+|    Poole; Scott Le Grand; Ross C. Walker "Routine
+|    microsecond molecular dynamics simulations with
+|    AMBER - Part II: Particle Mesh Ewald", J. Chem.
+|    Theory Comput., 2013, 9 (9), pp3878-3888,
+|    DOI: 10.1021/ct400314y.
+|
+|  - Andreas W. Goetz; Mark J. Williamson; Dong Xu;
+|    Duncan Poole; Scott Le Grand; Ross C. Walker
+|    "Routine microsecond molecular dynamics simulations
+|    with AMBER - Part I: Generalized Born", J. Chem.
+|    Theory Comput., 2012, 8 (5), pp1542-1555.
+|
+|    When publishing work that utilized the CUDA version
+|    of TI, BAR, MBAR or FEP please cite the following 
+|    publications in addition to the regular AMBER 
+|    GPU citations:
+|
+|  - Daniel J. Mermelstein; Charles Lin; Gard Nelson; 
+|    Rachael Kretsch; J. Andrew McCammon; Ross C. Walker
+|    "Fast and Flexible GPU Accelerated Binding 
+|    Free Energy Calculations within the AMBER Molecular
+|    Dynamics Package" J. Comp. Chem., 2018,
+|    DOI: 10.1002/jcc.25187
+|
+|  - Tai-Sung Lee; Yuan Hu; Brad Sherborne; Zhuyan Guo;
+|    Darrin M. York
+|    "Toward Fast and Accurate Binding Affinity Prediction with
+|    pmemdGTI: An Efficient Implementation of GPU-Accelerated
+|    Thermodynamic Integration"
+|    J. Chem. Theory Comput., 2017, 13 (7), 3077
+|
+|
+|--------------------------------------------------------
+ 
+|------------------- GPU DEVICE INFO --------------------
+|
+|            CUDA_VISIBLE_DEVICES: 0,1
+|   CUDA Capable Devices Detected:      2
+|           CUDA Device ID in use:      0
+|                CUDA Device Name: TITAN V
+|     CUDA Device Global Mem Size:  12066 MB
+| CUDA Device Num Multiprocessors:     80
+|           CUDA Device Core Freq:   1.46 GHz
+|
+|--------------------------------------------------------
+ 
+ 
+| Conditional Compilation Defines Used:
+| PUBFFT
+| BINTRAJ
+| CUDA
+| EMIL
+
+| Largest sphere to fit in unit cell has radius =    13.678
+
+| New format PARM file being parsed.
+| Version =    1.000 Date = 11/29/16 Time = 14:01:11
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+
+| Duplicated    0 dihedrals
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+ getting new box info from bottom of inpcrd
+ NATOM  =    2120 NTYPES =       7 NBONH =    2117 MBONA  =       1
+ NTHETH =      13 MTHETA =       0 NPHIH =       3 MPHIA  =       0
+ NHPARM =       0 NPARM  =       0 NNB   =    2839 NRES   =     705
+ NBONA  =       1 NTHETA =       0 NPHIA =       0 NUMBND =       6
+ NUMANG =       4 NPTRA  =       1 NATYP =       7 NPHB   =       1
+ IFBOX  =       1 NMXRS  =       6 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+| Coordinate Index Table dimensions:     6    6    6
+| Direct force subcell size =     4.6859    4.6225    4.5592
+
+     BOX TYPE: RECTILINEAR
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+L0                                                                              
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =     100, ntrx    =       1, ntwr    =     100
+     iwrap   =       1, ntwx    =   10000, ntwv    =       0, ntwe    =   10000
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   8.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =       500, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  -1.00000
+
+Langevin dynamics temperature regulation:
+     ig      =  197127
+     temp0   = 298.00000, tempi   =   0.00000, gamma_ln=   1.00000
+
+SHAKE:
+     ntc     =       2, jfastw  =       0
+     tol     =   0.00001
+
+Free energy options:
+     icfe    =       1, ifsc    =       1, klambda =       1
+     clambda =  0.5000, scalpha =  0.5000, scbeta  = 12.0000
+     sceeorder =       2
+     dynlmb =  0.0000 logdvdl =       0
+
+| Intermolecular bonds treatment:
+|     no_intermolecular_bonds =       1
+
+| Energy averages sample interval:
+|     ene_avg_sampling =       1
+
+Ewald parameters:
+     verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
+     vdwmeth =       1, eedmeth =       1, netfrc  =       1
+     Box X =   28.115   Box Y =   27.735   Box Z =   27.355
+     Alpha =   90.000   Beta  =   90.000   Gamma =   90.000
+     NFFT1 =   32       NFFT2 =   28       NFFT3 =   28
+     Cutoff=    8.000   Tol   =0.100E-04
+     Ewald Coefficient =  0.34864
+     Interpolation order =    4
+     TI Mask 1 :1; matches      5 atoms
+     TI Mask 2 :2; matches      6 atoms
+     TI region 1:    2114 atoms
+     TI region 2:    2115 atoms
+     SC Mask 2 :2@H6; matches      1 atoms
+| mismatched mass: atom #1, mass #1, atom #2, mass #2   2    1.0080   7   16.0000
+| gti_syn_mass has been set to   0
+
+|--------------------------------------------------------------------------------------------
+| Extra TI control variables
+|     gti_add_sc     =  -1, gti_ele_gauss  =   0, gti_auto_alpha =   0, gti_scale_beta =   0
+|     gti_ele_exp    =   2, gti_vdw_exp    =   6, gti_ele_sc     =   0, gti_vdw_sc     =   0
+|     gti_cut        =   1, gti_cut_sc     =   0
+|     gti_cut_sc_on    =  0.0000, gti_cut_sc_off    =  0.0000
+|--------------------------------------------------------------------------------------------
+
+ Noshake mask :1,2; matches      11 atoms.
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+L0                                                                              
+ begin time read from input coords =     0.000 ps
+
+ 
+ Number of triangulated 3-point waters found:      703
+   Removing shake constraints from C1    L0    1 -- H2    L0    1
+   Removing shake constraints from C1    L0    1 -- H3    L0    1
+   Removing shake constraints from C1    L0    1 -- H4    L0    1
+   Removing shake constraints from C1    L0    1 -- H5    L0    1
+   Removing shake constraints from O2    INT   2 -- H6    INT   2
+   Removing shake constraints from C1    INT   2 -- H3    INT   2
+   Removing shake constraints from C1    INT   2 -- H4    INT   2
+   Removing shake constraints from C1    INT   2 -- H5    INT   2
+ Number of shake restraints removed in TI region  1 :        4
+ Number of shake restraints removed in TI region  2 :        4
+
+     Sum of charges for TI region  1 =   0.00000000
+     Skip neutralizing charges...
+
+
+     Sum of charges for TI region  2 =   0.00000000
+     Skip neutralizing charges...
+
+| Dynamic Memory, Types Used:
+| Reals              201486
+| Integers            92816
+
+| Nonbonded Pairs Initial Allocation:      354093
+
+| GPU memory information (estimate):
+| KB of GPU memory in use:     16782
+| KB of CPU memory in use:      7798
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+   DOF for the SC part  2 of the system:    3
+
+| TI region  1
+
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =     -6608.8431  EKtot   =         0.0000  EPtot      =     -6608.8431
+ BOND   =        17.0835  ANGLE   =         0.5982  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.1763  VDWAALS    =      1054.1216
+ EELEC  =     -7682.8228  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        74.9086
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =     -6608.8431  EKtot   =         0.0000  EPtot      =     -6608.8431
+ BOND   =        17.0835  ANGLE   =         0.5982  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.1763  VDWAALS    =      1054.1216
+ EELEC  =     -7682.8228  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        74.9086
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =        3778.06
+ SC_Etot=        11.2770  SC_EKtot=        11.2616  SC_EPtot   =         0.0154
+ SC_BOND=         0.0001  SC_ANGLE=         0.0008  SC_DIHED   =         0.0145
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      2.4077  SC_VDW_DER=       0.0000  SC_DERIV   =         2.4077
+ ------------------------------------------------------------------------------
+
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Detailed TI info at lambda=  0.50000000000000000     
+Region                    H           W       dH/dl       dW/dl
+TI 1 vDW              65.58207     0.50000     0.00000    -1.00000
+TI 2 vDW             114.32108     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW      H=      89.9516 dU/dL: L=   48.7390 NL=    0.0000 Tot=   48.73901
+ ------------------------------------------------------------------------
+TI 1 Bond              0.00000     0.50000     0.00000    -1.00000
+TI 2 Bond             33.73166     0.50000     0.00000     1.00000
+lambda = 0.500 : Bond     H=      16.8658 dU/dL: L=   33.7317 NL=    0.0000 Tot=   33.73166
+ ------------------------------------------------------------------------
+TI 1 Angle             0.74356     0.50000     0.00000    -1.00000
+TI 2 Angle             0.45293     0.50000     0.00000     1.00000
+lambda = 0.500 : Angle    H=       0.5982 dU/dL: L=   -0.2906 NL=    0.0000 Tot=   -0.29063
+ ------------------------------------------------------------------------
+TI 1 Elec-Rec         65.23001     0.50000     0.00000    -1.00000
+TI 2 Elec-Rec         65.62626     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-Rec H=      65.4281 dU/dL: L=    0.3963 NL=    0.0000 Tot=    0.39625
+ ------------------------------------------------------------------------
+TI 1 Elec-CC           0.31647     0.50000     0.00000    -1.00000
+TI 2 Elec-CC          -5.13078     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-CC  H=      -2.4072 dU/dL: L=   -5.4473 NL=    0.0000 Tot=   -5.44725
+ ------------------------------------------------------------------------
+TI 1 Elec-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Elec-SC          24.89939     0.50000     4.81535     1.00000
+lambda = 0.500 : Elec-SC  H=      12.4497 dU/dL: L=   24.8994 NL=    2.4077 Tot=   27.30706
+ ------------------------------------------------------------------------
+TI 1 EE14-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 EE14-SC           4.35257     0.50000     0.00000     1.00000
+lambda = 0.500 : EE14-SC  H=       2.1763 dU/dL: L=    4.3526 NL=    0.0000 Tot=    4.35257
+ ------------------------------------------------------------------------
+TI 1 Self-Rec          0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-Rec          0.00000     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-Rec H=       0.0000 dU/dL: L=    0.0000 NL=    0.0000 Tot=    0.00000
+ ------------------------------------------------------------------------
+TI 1 Self-CC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-CC         -23.51070     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-CC  H=     -11.7553 dU/dL: L=  -23.5107 NL=    0.0000 Tot=  -23.51070
+ ------------------------------------------------------------------------
+TI 1 Self-SC          -0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-SC         -10.24231     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-SC  H=      -5.1212 dU/dL: L=  -10.2423 NL=    0.0000 Tot=  -10.24231
+ ------------------------------------------------------------------------
+TI 1 vDW-Corr          0.00000     0.50000     0.00000    -1.00000
+TI 2 vDW-Corr         -0.12705     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW-Corr H=      -0.0635 dU/dL: L=   -0.1270 NL=    0.0000 Tot=   -0.12705
+ ------------------------------------------------------------------------
+lambda = 0.500 : Total dU/dl:   74.908605  L:   72.50093  NL:    2.40767  PI:    0.00000
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+| TI region  1
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =   201.90  PRESS =     0.0
+ Etot   =     -6518.2936  EKtot   =       848.3517  EPtot      =     -7366.6453
+ BOND   =        12.0209  ANGLE   =         7.2822  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.0026  VDWAALS    =      1059.6052
+ EELEC  =     -8447.5562  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        24.3718
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =   207.08  PRESS =     0.0
+ Etot   =     -6495.7074  EKtot   =       870.9379  EPtot      =     -7366.6453
+ BOND   =        12.0209  ANGLE   =         7.2822  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.0026  VDWAALS    =      1059.6052
+ EELEC  =     -8447.5562  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        24.3718
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =        1451.81
+ SC_Etot=         8.6820  SC_EKtot=         4.3275  SC_EPtot   =         4.3545
+ SC_BOND=         0.8302  SC_ANGLE=         2.5588  SC_DIHED   =         0.9655
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      1.1699  SC_VDW_DER=       0.0000  SC_DERIV   =         1.1699
+ ------------------------------------------------------------------------------
+
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Detailed TI info at lambda=  0.50000000000000000     
+Region                    H           W       dH/dl       dW/dl
+TI 1 vDW              -2.94155     0.50000     0.00000    -1.00000
+TI 2 vDW              -3.06132     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW      H=      -3.0014 dU/dL: L=   -0.1198 NL=    0.0000 Tot=   -0.11977
+ ------------------------------------------------------------------------
+TI 1 Bond              1.48486     0.50000     0.00000    -1.00000
+TI 2 Bond             22.55695     0.50000     0.00000     1.00000
+lambda = 0.500 : Bond     H=      12.0209 dU/dL: L=   21.0721 NL=    0.0000 Tot=   21.07209
+ ------------------------------------------------------------------------
+TI 1 Angle             6.70240     0.50000     0.00000    -1.00000
+TI 2 Angle             7.86207     0.50000     0.00000     1.00000
+lambda = 0.500 : Angle    H=       7.2822 dU/dL: L=    1.1597 NL=    0.0000 Tot=    1.15967
+ ------------------------------------------------------------------------
+TI 1 Elec-Rec         43.18911     0.50000     0.00000    -1.00000
+TI 2 Elec-Rec         43.55635     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-Rec H=      43.3727 dU/dL: L=    0.3672 NL=    0.0000 Tot=    0.36724
+ ------------------------------------------------------------------------
+TI 1 Elec-CC           0.99258     0.50000     0.00000    -1.00000
+TI 2 Elec-CC           8.34920     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-CC  H=       4.6709 dU/dL: L=    7.3566 NL=    0.0000 Tot=    7.35662
+ ------------------------------------------------------------------------
+TI 1 Elec-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Elec-SC          23.24092     0.50000     2.33979     1.00000
+lambda = 0.500 : Elec-SC  H=      11.6205 dU/dL: L=   23.2409 NL=    1.1699 Tot=   24.41081
+ ------------------------------------------------------------------------
+TI 1 EE14-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 EE14-SC           4.00521     0.50000     0.00000     1.00000
+lambda = 0.500 : EE14-SC  H=       2.0026 dU/dL: L=    4.0052 NL=    0.0000 Tot=    4.00521
+ ------------------------------------------------------------------------
+TI 1 Self-Rec          0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-Rec          0.00000     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-Rec H=       0.0000 dU/dL: L=    0.0000 NL=    0.0000 Tot=    0.00000
+ ------------------------------------------------------------------------
+TI 1 Self-CC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-CC         -23.51070     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-CC  H=     -11.7553 dU/dL: L=  -23.5107 NL=    0.0000 Tot=  -23.51070
+ ------------------------------------------------------------------------
+TI 1 Self-SC          -0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-SC         -10.24231     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-SC  H=      -5.1212 dU/dL: L=  -10.2423 NL=    0.0000 Tot=  -10.24231
+ ------------------------------------------------------------------------
+TI 1 vDW-Corr          0.00000     0.50000     0.00000    -1.00000
+TI 2 vDW-Corr         -0.12705     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW-Corr H=      -0.0635 dU/dL: L=   -0.1270 NL=    0.0000 Tot=   -0.12705
+ ------------------------------------------------------------------------
+lambda = 0.500 : Total dU/dl:   24.371821  L:   23.20193  NL:    1.16989  PI:    0.00000
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+| TI region  1
+
+
+ NSTEP =      200   TIME(PS) =       0.200  TEMP(K) =   212.76  PRESS =     0.0
+ Etot   =     -6435.6660  EKtot   =       893.9968  EPtot      =     -7329.6628
+ BOND   =        15.0599  ANGLE   =         8.1672  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         1.8953  VDWAALS    =      1223.4240
+ EELEC  =     -8578.2092  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       -21.9296
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =      200   TIME(PS) =       0.200  TEMP(K) =   216.93  PRESS =     0.0
+ Etot   =     -6417.2834  EKtot   =       912.3795  EPtot      =     -7329.6628
+ BOND   =        15.0599  ANGLE   =         8.1672  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         1.8953  VDWAALS    =      1223.4240
+ EELEC  =     -8578.2092  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       -21.9296
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =        1776.89
+ SC_Etot=         5.5835  SC_EKtot=         5.2965  SC_EPtot   =         0.2869
+ SC_BOND=         0.0040  SC_ANGLE=         0.0001  SC_DIHED   =         0.2828
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      0.8427  SC_VDW_DER=       0.0000  SC_DERIV   =         0.8427
+ ------------------------------------------------------------------------------
+
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Detailed TI info at lambda=  0.50000000000000000     
+Region                    H           W       dH/dl       dW/dl
+TI 1 vDW              -2.21837     0.50000     0.00000    -1.00000
+TI 2 vDW              -3.13222     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW      H=      -2.6753 dU/dL: L=   -0.9139 NL=    0.0000 Tot=   -0.91385
+ ------------------------------------------------------------------------
+TI 1 Bond             26.22467     0.50000     0.00000    -1.00000
+TI 2 Bond              3.89519     0.50000     0.00000     1.00000
+lambda = 0.500 : Bond     H=      15.0599 dU/dL: L=  -22.3295 NL=    0.0000 Tot=  -22.32948
+ ------------------------------------------------------------------------
+TI 1 Angle             8.16120     0.50000     0.00000    -1.00000
+TI 2 Angle             8.17314     0.50000     0.00000     1.00000
+lambda = 0.500 : Angle    H=       8.1672 dU/dL: L=    0.0119 NL=    0.0000 Tot=    0.01195
+ ------------------------------------------------------------------------
+TI 1 Elec-Rec         49.53845     0.50000     0.00000    -1.00000
+TI 2 Elec-Rec         49.90242     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-Rec H=      49.7204 dU/dL: L=    0.3640 NL=    0.0000 Tot=    0.36396
+ ------------------------------------------------------------------------
+TI 1 Elec-CC           0.93182     0.50000     0.00000    -1.00000
+TI 2 Elec-CC           8.36320     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-CC  H=       4.6475 dU/dL: L=    7.4314 NL=    0.0000 Tot=    7.43138
+ ------------------------------------------------------------------------
+TI 1 Elec-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Elec-SC          22.75322     0.50000     1.68541     1.00000
+lambda = 0.500 : Elec-SC  H=      11.3766 dU/dL: L=   22.7532 NL=    0.8427 Tot=   23.59592
+ ------------------------------------------------------------------------
+TI 1 EE14-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 EE14-SC           3.79054     0.50000     0.00000     1.00000
+lambda = 0.500 : EE14-SC  H=       1.8953 dU/dL: L=    3.7905 NL=    0.0000 Tot=    3.79054
+ ------------------------------------------------------------------------
+TI 1 Self-Rec          0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-Rec          0.00000     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-Rec H=       0.0000 dU/dL: L=    0.0000 NL=    0.0000 Tot=    0.00000
+ ------------------------------------------------------------------------
+TI 1 Self-CC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-CC         -23.51070     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-CC  H=     -11.7553 dU/dL: L=  -23.5107 NL=    0.0000 Tot=  -23.51070
+ ------------------------------------------------------------------------
+TI 1 Self-SC          -0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-SC         -10.24231     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-SC  H=      -5.1212 dU/dL: L=  -10.2423 NL=    0.0000 Tot=  -10.24231
+ ------------------------------------------------------------------------
+TI 1 vDW-Corr          0.00000     0.50000     0.00000    -1.00000
+TI 2 vDW-Corr         -0.12705     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW-Corr H=      -0.0635 dU/dL: L=   -0.1270 NL=    0.0000 Tot=   -0.12705
+ ------------------------------------------------------------------------
+lambda = 0.500 : Total dU/dl:  -21.929631  L:  -22.77234  NL:    0.84270  PI:    0.00000
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+| TI region  1
+
+
+ NSTEP =      300   TIME(PS) =       0.300  TEMP(K) =   213.43  PRESS =     0.0
+ Etot   =     -6394.1159  EKtot   =       896.7973  EPtot      =     -7290.9132
+ BOND   =        13.1322  ANGLE   =         4.3938  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         1.8635  VDWAALS    =      1184.6032
+ EELEC  =     -8494.9060  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         5.2876
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =      300   TIME(PS) =       0.300  TEMP(K) =   220.39  PRESS =     0.0
+ Etot   =     -6363.9904  EKtot   =       926.9228  EPtot      =     -7290.9132
+ BOND   =        13.1322  ANGLE   =         4.3938  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         1.8635  VDWAALS    =      1184.6032
+ EELEC  =     -8494.9060  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         5.2876
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         660.25
+ SC_Etot=         8.1815  SC_EKtot=         1.9681  SC_EPtot   =         6.2134
+ SC_BOND=         5.2096  SC_ANGLE=         0.9747  SC_DIHED   =         0.0291
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      0.9056  SC_VDW_DER=       0.0000  SC_DERIV   =         0.9056
+ ------------------------------------------------------------------------------
+
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Detailed TI info at lambda=  0.50000000000000000     
+Region                    H           W       dH/dl       dW/dl
+TI 1 vDW              -2.06308     0.50000     0.00000    -1.00000
+TI 2 vDW              -3.04588     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW      H=      -2.5545 dU/dL: L=   -0.9828 NL=    0.0000 Tot=   -0.98280
+ ------------------------------------------------------------------------
+TI 1 Bond              9.05113     0.50000     0.00000    -1.00000
+TI 2 Bond             17.21320     0.50000     0.00000     1.00000
+lambda = 0.500 : Bond     H=      13.1322 dU/dL: L=    8.1621 NL=    0.0000 Tot=    8.16207
+ ------------------------------------------------------------------------
+TI 1 Angle             3.91308     0.50000     0.00000    -1.00000
+TI 2 Angle             4.87462     0.50000     0.00000     1.00000
+lambda = 0.500 : Angle    H=       4.3938 dU/dL: L=    0.9615 NL=    0.0000 Tot=    0.96154
+ ------------------------------------------------------------------------
+TI 1 Elec-Rec         47.47059     0.50000     0.00000    -1.00000
+TI 2 Elec-Rec         47.38680     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-Rec H=      47.4287 dU/dL: L=   -0.0838 NL=    0.0000 Tot=   -0.08380
+ ------------------------------------------------------------------------
+TI 1 Elec-CC           0.98025     0.50000     0.00000    -1.00000
+TI 2 Elec-CC           3.59895     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-CC  H=       2.2896 dU/dL: L=    2.6187 NL=    0.0000 Tot=    2.61870
+ ------------------------------------------------------------------------
+TI 1 Elec-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Elec-SC          23.85931     0.50000     1.81119     1.00000
+lambda = 0.500 : Elec-SC  H=      11.9297 dU/dL: L=   23.8593 NL=    0.9056 Tot=   24.76491
+ ------------------------------------------------------------------------
+TI 1 EE14-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 EE14-SC           3.72708     0.50000     0.00000     1.00000
+lambda = 0.500 : EE14-SC  H=       1.8635 dU/dL: L=    3.7271 NL=    0.0000 Tot=    3.72708
+ ------------------------------------------------------------------------
+TI 1 Self-Rec          0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-Rec          0.00000     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-Rec H=       0.0000 dU/dL: L=    0.0000 NL=    0.0000 Tot=    0.00000
+ ------------------------------------------------------------------------
+TI 1 Self-CC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-CC         -23.51070     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-CC  H=     -11.7553 dU/dL: L=  -23.5107 NL=    0.0000 Tot=  -23.51070
+ ------------------------------------------------------------------------
+TI 1 Self-SC          -0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-SC         -10.24231     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-SC  H=      -5.1212 dU/dL: L=  -10.2423 NL=    0.0000 Tot=  -10.24231
+ ------------------------------------------------------------------------
+TI 1 vDW-Corr          0.00000     0.50000     0.00000    -1.00000
+TI 2 vDW-Corr         -0.12705     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW-Corr H=      -0.0635 dU/dL: L=   -0.1270 NL=    0.0000 Tot=   -0.12705
+ ------------------------------------------------------------------------
+lambda = 0.500 : Total dU/dl:    5.287639  L:    4.38204  NL:    0.90560  PI:    0.00000
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+| TI region  1
+
+
+ NSTEP =      400   TIME(PS) =       0.400  TEMP(K) =   222.60  PRESS =     0.0
+ Etot   =     -6334.3464  EKtot   =       935.3665  EPtot      =     -7269.7129
+ BOND   =        13.5088  ANGLE   =         3.5534  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.0416  VDWAALS    =      1182.2337
+ EELEC  =     -8471.0504  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        14.5759
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =      400   TIME(PS) =       0.400  TEMP(K) =   229.85  PRESS =     0.0
+ Etot   =     -6303.0077  EKtot   =       966.7052  EPtot      =     -7269.7129
+ BOND   =        13.5088  ANGLE   =         3.5534  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.0416  VDWAALS    =      1182.2337
+ EELEC  =     -8471.0504  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        14.5759
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =        1008.47
+ SC_Etot=         6.3991  SC_EKtot=         3.0060  SC_EPtot   =         3.3931
+ SC_BOND=         2.0696  SC_ANGLE=         0.4872  SC_DIHED   =         0.8363
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      0.4054  SC_VDW_DER=       0.0000  SC_DERIV   =         0.4054
+ ------------------------------------------------------------------------------
+
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Detailed TI info at lambda=  0.50000000000000000     
+Region                    H           W       dH/dl       dW/dl
+TI 1 vDW              -0.73093     0.50000     0.00000    -1.00000
+TI 2 vDW              -2.10088     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW      H=      -1.4159 dU/dL: L=   -1.3699 NL=    0.0000 Tot=   -1.36995
+ ------------------------------------------------------------------------
+TI 1 Bond              4.80758     0.50000     0.00000    -1.00000
+TI 2 Bond             22.21003     0.50000     0.00000     1.00000
+lambda = 0.500 : Bond     H=      13.5088 dU/dL: L=   17.4024 NL=    0.0000 Tot=   17.40245
+ ------------------------------------------------------------------------
+TI 1 Angle             3.40285     0.50000     0.00000    -1.00000
+TI 2 Angle             3.70401     0.50000     0.00000     1.00000
+lambda = 0.500 : Angle    H=       3.5534 dU/dL: L=    0.3012 NL=    0.0000 Tot=    0.30116
+ ------------------------------------------------------------------------
+TI 1 Elec-Rec         47.00121     0.50000     0.00000    -1.00000
+TI 2 Elec-Rec         46.89496     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-Rec H=      46.9481 dU/dL: L=   -0.1063 NL=    0.0000 Tot=   -0.10625
+ ------------------------------------------------------------------------
+TI 1 Elec-CC           0.98781     0.50000     0.00000    -1.00000
+TI 2 Elec-CC           6.27989     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-CC  H=       3.6338 dU/dL: L=    5.2921 NL=    0.0000 Tot=    5.29208
+ ------------------------------------------------------------------------
+TI 1 Elec-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Elec-SC          22.44772     0.50000     0.81084     1.00000
+lambda = 0.500 : Elec-SC  H=      11.2239 dU/dL: L=   22.4477 NL=    0.4054 Tot=   22.85314
+ ------------------------------------------------------------------------
+TI 1 EE14-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 EE14-SC           4.08328     0.50000     0.00000     1.00000
+lambda = 0.500 : EE14-SC  H=       2.0416 dU/dL: L=    4.0833 NL=    0.0000 Tot=    4.08328
+ ------------------------------------------------------------------------
+TI 1 Self-Rec          0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-Rec          0.00000     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-Rec H=       0.0000 dU/dL: L=    0.0000 NL=    0.0000 Tot=    0.00000
+ ------------------------------------------------------------------------
+TI 1 Self-CC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-CC         -23.51070     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-CC  H=     -11.7553 dU/dL: L=  -23.5107 NL=    0.0000 Tot=  -23.51070
+ ------------------------------------------------------------------------
+TI 1 Self-SC          -0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-SC         -10.24231     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-SC  H=      -5.1212 dU/dL: L=  -10.2423 NL=    0.0000 Tot=  -10.24231
+ ------------------------------------------------------------------------
+TI 1 vDW-Corr          0.00000     0.50000     0.00000    -1.00000
+TI 2 vDW-Corr         -0.12705     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW-Corr H=      -0.0635 dU/dL: L=   -0.1270 NL=    0.0000 Tot=   -0.12705
+ ------------------------------------------------------------------------
+lambda = 0.500 : Total dU/dl:   14.575858  L:   14.17044  NL:    0.40542  PI:    0.00000
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+| TI region  1
+
+
+ NSTEP =      500   TIME(PS) =       0.500  TEMP(K) =   232.11  PRESS =     0.0
+ Etot   =     -6271.4042  EKtot   =       975.3143  EPtot      =     -7246.7185
+ BOND   =        12.1173  ANGLE   =         4.5678  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.1356  VDWAALS    =      1201.8267
+ EELEC  =     -8467.3659  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         4.0920
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =      500   TIME(PS) =       0.500  TEMP(K) =   234.10  PRESS =     0.0
+ Etot   =     -6262.1205  EKtot   =       984.5980  EPtot      =     -7246.7185
+ BOND   =        12.1173  ANGLE   =         4.5678  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.1356  VDWAALS    =      1201.8267
+ EELEC  =     -8467.3659  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         4.0920
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         485.07
+ SC_Etot=         4.3361  SC_EKtot=         1.4459  SC_EPtot   =         2.8902
+ SC_BOND=         1.6921  SC_ANGLE=         0.2664  SC_DIHED   =         0.9317
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      0.7546  SC_VDW_DER=       0.0000  SC_DERIV   =         0.7546
+ ------------------------------------------------------------------------------
+
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Detailed TI info at lambda=  0.50000000000000000     
+Region                    H           W       dH/dl       dW/dl
+TI 1 vDW              -2.16064     0.50000     0.00000    -1.00000
+TI 2 vDW              -3.17066     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW      H=      -2.6657 dU/dL: L=   -1.0100 NL=    0.0000 Tot=   -1.01002
+ ------------------------------------------------------------------------
+TI 1 Bond              8.14967     0.50000     0.00000    -1.00000
+TI 2 Bond             16.08484     0.50000     0.00000     1.00000
+lambda = 0.500 : Bond     H=      12.1173 dU/dL: L=    7.9352 NL=    0.0000 Tot=    7.93517
+ ------------------------------------------------------------------------
+TI 1 Angle             4.41322     0.50000     0.00000    -1.00000
+TI 2 Angle             4.72248     0.50000     0.00000     1.00000
+lambda = 0.500 : Angle    H=       4.5678 dU/dL: L=    0.3093 NL=    0.0000 Tot=    0.30926
+ ------------------------------------------------------------------------
+TI 1 Elec-Rec         47.28752     0.50000     0.00000    -1.00000
+TI 2 Elec-Rec         47.27197     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-Rec H=      47.2797 dU/dL: L=   -0.0155 NL=    0.0000 Tot=   -0.01555
+ ------------------------------------------------------------------------
+TI 1 Elec-CC           1.03339     0.50000     0.00000    -1.00000
+TI 2 Elec-CC           3.49767     0.50000     0.00000     1.00000
+lambda = 0.500 : Elec-CC  H=       2.2655 dU/dL: L=    2.4643 NL=    0.0000 Tot=    2.46428
+ ------------------------------------------------------------------------
+TI 1 Elec-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Elec-SC          23.26310     0.50000     1.50922     1.00000
+lambda = 0.500 : Elec-SC  H=      11.6316 dU/dL: L=   23.2631 NL=    0.7546 Tot=   24.01771
+ ------------------------------------------------------------------------
+TI 1 EE14-SC           0.00000     0.50000     0.00000    -1.00000
+TI 2 EE14-SC           4.27118     0.50000     0.00000     1.00000
+lambda = 0.500 : EE14-SC  H=       2.1356 dU/dL: L=    4.2712 NL=    0.0000 Tot=    4.27118
+ ------------------------------------------------------------------------
+TI 1 Self-Rec          0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-Rec          0.00000     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-Rec H=       0.0000 dU/dL: L=    0.0000 NL=    0.0000 Tot=    0.00000
+ ------------------------------------------------------------------------
+TI 1 Self-CC           0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-CC         -23.51070     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-CC  H=     -11.7553 dU/dL: L=  -23.5107 NL=    0.0000 Tot=  -23.51070
+ ------------------------------------------------------------------------
+TI 1 Self-SC          -0.00000     0.50000     0.00000    -1.00000
+TI 2 Self-SC         -10.24231     0.50000     0.00000     1.00000
+lambda = 0.500 : Self-SC  H=      -5.1212 dU/dL: L=  -10.2423 NL=    0.0000 Tot=  -10.24231
+ ------------------------------------------------------------------------
+TI 1 vDW-Corr          0.00000     0.50000     0.00000    -1.00000
+TI 2 vDW-Corr         -0.12705     0.50000     0.00000     1.00000
+lambda = 0.500 : vDW-Corr H=      -0.0635 dU/dL: L=   -0.1270 NL=    0.0000 Tot=   -0.12705
+ ------------------------------------------------------------------------
+lambda = 0.500 : Total dU/dl:    4.091983  L:    3.33737  NL:    0.75461  PI:    0.00000
+ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+| TI region  1
+
+
+      A V E R A G E S   O V E R     500 S T E P S
+
+
+ NSTEP =      500   TIME(PS) =       0.500  TEMP(K) =   211.70  PRESS =     0.0
+ Etot   =     -6400.8575  EKtot   =       889.5451  EPtot      =     -7290.4026
+ BOND   =        13.5620  ANGLE   =         5.3583  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.0452  VDWAALS    =      1139.6265
+ EELEC  =     -8450.9946  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        -0.6545
+ ------------------------------------------------------------------------------
+
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =      500   TIME(PS) =       0.500  TEMP(K) =    24.66  PRESS =     0.0
+ Etot   =        67.0107  EKtot   =       103.6093  EPtot      =        82.3313
+ BOND   =         3.0327  ANGLE   =         3.6653  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.1230  VDWAALS    =       123.7786
+ EELEC  =       163.6605  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        17.9656
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+      A V E R A G E S   O V E R     500 S T E P S
+
+
+ NSTEP =      500   TIME(PS) =       0.500  TEMP(K) =   216.48  PRESS =     0.0
+ Etot   =     -6379.9202  EKtot   =       910.4824  EPtot      =     -7290.4026
+ BOND   =        13.5620  ANGLE   =         5.3583  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         2.0452  VDWAALS    =      1139.6265
+ EELEC  =     -8450.9946  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        -0.6545
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         980.47
+ SC_Etot=         6.1468  SC_EKtot=         2.9226  SC_EPtot   =         3.2243
+ SC_BOND=         1.4728  SC_ANGLE=         1.3072  SC_DIHED   =         0.4443
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      0.6486  SC_VDW_DER=       0.0000  SC_DERIV   =         0.6486
+ ------------------------------------------------------------------------------
+
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =      500   TIME(PS) =       0.500  TEMP(K) =    26.03  PRESS =     0.0
+ Etot   =        74.3948  EKtot   =       109.4666  EPtot      =        82.3313
+ BOND   =         3.0327  ANGLE   =         3.6653  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.1230  VDWAALS    =       123.7786
+ EELEC  =       163.6605  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        17.9656
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         618.68
+ SC_Etot=         2.7135  SC_EKtot=         1.8442  SC_EPtot   =         2.4443
+ SC_BOND=         1.5881  SC_ANGLE=         1.8605  SC_DIHED   =         0.3719
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      0.5791  SC_VDW_DER=       0.0000  SC_DERIV   =         0.5791
+ ------------------------------------------------------------------------------
+
+
+      DV/DL, AVERAGES OVER     500 STEPS
+
+
+ NSTEP =      500   TIME(PS) =       0.500  TEMP(K) =    26.03  PRESS =     0.0
+ Etot   =         0.0000  EKtot   =         0.0000  EPtot      =        -0.6545
+ BOND   =        -0.7067  ANGLE   =         0.6171  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         4.0904  VDWAALS    =         0.2498
+ EELEC  =        -5.5535  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        -0.6545
+ ------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|  NonSetup CPU Time in Major Routines:
+|
+|     Routine           Sec        %
+|     ------------------------------
+|     Nonbond           0.26   88.25
+|     Bond              0.00    0.00
+|     Angle             0.00    0.00
+|     Dihedral          0.00    0.00
+|     Shake             0.00    0.40
+|     RunMD             0.03   10.96
+|     Other             0.00    0.39
+|     ------------------------------
+|     Total             0.29
+
+|  PME Nonbond Pairlist CPU Time:
+|
+|     Routine              Sec        %
+|     ---------------------------------
+|     Set Up Cit           0.00    0.00
+|     Build List           0.00    0.00
+|     ---------------------------------
+|     Total                0.00    0.00
+
+|  PME Direct Force CPU Time:
+|
+|     Routine              Sec        %
+|     ---------------------------------
+|     NonBonded Calc       0.00    0.00
+|     Exclude Masked       0.00    0.00
+|     Other                0.00    0.23
+|     ---------------------------------
+|     Total                0.00    0.23
+
+|  PME Reciprocal Force CPU Time:
+|
+|     Routine              Sec        %
+|     ---------------------------------
+|     1D bspline           0.00    0.00
+|     Grid Charges         0.00    0.00
+|     Scalar Sum           0.00    0.00
+|     Gradient Sum         0.00    0.00
+|     FFT                  0.00    0.00
+|     ---------------------------------
+|     Total                0.00    0.00
+
+|  Final Performance Info:
+|     -----------------------------------------------------
+|     Average timings for last     500 steps:
+|     Elapsed(s) =       0.29 Per Step(ms) =       0.58
+|         ns/day =     149.19   seconds/ns =     579.11
+|
+|     Average timings for all steps:
+|     Elapsed(s) =       0.29 Per Step(ms) =       0.58
+|         ns/day =     149.19   seconds/ns =     579.11
+|     -----------------------------------------------------
+
+|  Setup CPU time:            0.37 seconds
+|  NonSetup CPU time:         0.29 seconds
+|  Total CPU time:            0.66 seconds     0.00 hours
+
+|  Setup wall time:           0    seconds
+|  NonSetup wall time:        1    seconds
+|  Total wall time:           1    seconds     0.00 hours

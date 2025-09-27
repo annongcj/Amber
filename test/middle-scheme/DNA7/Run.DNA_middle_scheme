@@ -1,0 +1,62 @@
+#!/bin/csh -f
+#TEST-PROGRAM sander, pmemd
+#TEST-DESCRIP canonical ensemble, periodic boundaries, shake, DNA, middle-scheme
+#TEST-PURPOSE regression, basic, pedagogical
+#TEST-STATE   ok
+
+set sander = "${AMBERHOME}/bin/sander"
+if( $?TESTsander ) then
+   set sander = $TESTsander
+endif
+
+if( ! $?DO_PARALLEL ) then
+    setenv DO_PARALLEL " "
+endif
+
+cat > mdin <<EOF
+ MD for DNA
+ &cntrl
+   ntx=5, irest=1,                   ! read coordinates
+   ntc=2, ntf=2, tol=0.0000001,      ! constrain lengths of bonds
+
+   ntb = 1,                          ! constant volume
+   nstlim=10,                        ! MD for 10 steps
+   ntpr=1, ntwr=10000,               ! output settings
+   dt=0.001,                         ! timestep in ps 
+   ig=71277,                         ! random seed
+   cut = 9.0,                        ! non-bond cut off
+   temp0 = 300, tempi = 300,         ! temerature settings
+   ischeme = 1,                      !! Leapfrog middle scheme
+   ithermostat = 1,                  !! Langevin thermostat
+   therm_par = 5.0,                  !! thermostat parameter in ps^-1
+ /
+ &ewald
+   nfft1=60, nfft2=60, nfft3=60, netfrc=0,
+ /
+EOF
+$DO_PARALLEL $sander -O -i mdin -c com-sol_equil_0.rst -o mdout.DNA_middle_scheme || goto error
+
+if ( `basename $sander` == "pmemd.mic_offload.MPI" ) then
+../../dacdif -r 1.0e-8 mdout.DNA_middle_scheme.save mdout.DNA_middle_scheme
+/bin/rm -f mdin restrt mdinfo logfile mdcrd
+exit(0)
+
+else
+
+../../dacdif mdout.DNA_middle_scheme.save mdout.DNA_middle_scheme
+/bin/rm -f mdin restrt mdinfo logfile mdcrd
+exit(0)
+end if
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+
+
+

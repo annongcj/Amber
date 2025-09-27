@@ -1,0 +1,31 @@
+module test_xray_atomic_scatter_factor_impl_cpu
+  use xray_pure_utils
+  use funit
+  
+  implicit none
+  
+  integer, parameter , private :: rk = real_kind
+  real(real_kind), parameter :: tolerance = 5e-5  ! Absolute tolerance
+  
+contains
+  
+  @test
+  subroutine test_init_finalize()
+    use xray_atomic_scatter_factor_impl_cpu_module, only : init_atomic_scatter => init, finalize_atomic_scatter => finalize
+    
+    real(real_kind), parameter :: mSS4(4) = [ -1.0_rk, -2.0_rk, -3.0_rk, -4.0_rk]
+    real(real_kind), parameter :: scatter_coefficients(2, 5, 2) = reshape( [ &
+      &  [ [1.0_rk, 2.0_rk], [2.0_rk, 3.0_rk], [3.0_rk, 4.0_rk] , [2.0_rk, 4.0_rk] , [5.0_rk, 6.0_rk]  ], &
+      &  [ [1.5_rk, 2.5_rk], [2.5_rk, 3.5_rk], [3.5_rk, 4.5_rk] , [2.5_rk, 4.5_rk] , [5.5_rk, 6.5_rk]  ] &
+      & ], [2, 5, 2],  order=[3, 2, 1])
+    
+    integer :: i
+    
+    do i = 1, 3
+      call init_atomic_scatter(mSS4, scatter_coefficients)
+      call finalize_atomic_scatter()
+    end do
+  end subroutine test_init_finalize
+  
+end module test_xray_atomic_scatter_factor_impl_cpu
+

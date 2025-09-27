@@ -1,0 +1,83 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP Test dihedral restraints using nmropt = 1
+#TEST-PURPOSE regression pedagogical
+#TEST-STATE   ok
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+#Note that the GPU mdout files may have fundamental errors when diffed with the
+#CPU mdouts due to GPU not supporting Jarzynski and COM tests
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+Test of angle restraints using nmropt=1
+ &cntrl                                                                        
+   nstlim=20,
+   ntpr=1, ntt=1,
+   dt=0.001,
+   igb=0, 
+   nmropt=1, jar=1,
+   ig=71277,
+ /
+ &ewald
+   nfft1=64, nfft2=64, nfft3=64,netfrc=0,
+ /
+ &wt type='DUMPFREQ', istep1=2  /
+ &wt type='END'   /
+DISANG=jartorsion_pbc.RST
+DUMPAVE=jartorsion_pbc.dat
+LISTIN=POUT
+LISTOUT=POUT
+/
+EOF
+
+cat > jartorsion_pbc.RST << EOF
+#  torsion restraint for residue 34
+ &rst  iat=720,719,710,711 r2=70.0, rk2 = 400.0, r2a = 80.0,
+ /
+EOF
+
+set output = mdout
+set vs_t_output = jartorsion_pbc.dat
+set output_save = $output.GPU_$1
+set vs_t_output_save = $vs_t_output.GPU_$1
+
+touch dummy
+$DO_PARALLEL $sander -O -p ../myoglobin_pbc.prmtop -c ../myoglobin_pbc.inpcrd -i mdin -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../../dacdif -r 1.0e-7 $output_save $output
+  ../../../../dacdif -r 1.0e-7 $vs_t_output_save $vs_t_output
+else
+  #4 sig figs
+  ../../../../dacdif -r 1.0e-4 $output_save $output
+  ../../../../dacdif -r 1.0e-4 $vs_t_output_save $vs_t_output
+endif
+
+/bin/rm -f mdin restrt mdinfo profile_mpi logfile jartorsion_pbc.RST dummy
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+

@@ -1,0 +1,41 @@
+# Platform-specific info should be found in config.h
+
+include ../../config.h
+
+CU_OBJS = cuda_info.o gpu.o gputypes.o \
+          kForcesUpdate.o kCalculateLocalForces.o kCalculateGBBornRadii.o \
+          kCalculatePMENonbondEnergy.o radixsort.o radixsort_c.o \
+          kCalculateGBNonbondEnergy1.o kCalculateGBNonbondEnergy2.o \
+          kShake.o kNeighborList.o kPMEInterpolation.o kCalculateEFieldEnergy.o \
+          cudpp_scan.o cudpp_scan_c.o
+
+.SUFFIXES: .fpp .cpp .cu .o
+
+# CUDA compilations flags
+kForcesUpdate.cu.CU_FLAGS                   =
+kCalculateLocalForces.cu.CU_FLAGS           =
+kCalculateGBBornRadii.cu.CU_FLAGS           =
+kCalculateGBNonbondEnergy1.cu.CU_FLAGS      =
+kCalculateGBNonbondEnergy2.cu.CU_FLAGS      =
+kShake.cu.CU_FLAGS                          =
+kPMEInterpolation.cu.CU_FLAGS               =
+kNeighborList.cu.CU_FLAGS                   =
+kCalculatePMENonbondEnergy.cu.CU_FLAGS      =
+kCalculateEFieldEnergy.cu.CU_FLAGS          =
+cudpp_scan.cu.CU_FLAGS                      =
+
+cuda.a: $(CU_OBJS) 
+	ar rvs cuda.a $(CU_OBJS)
+
+.fpp.o:
+	$(CPP) $(CPPFLAGS) $(CU_DEFINES) $(FFT_INCLUDE) $(MPI_INCLUDE) $(FFT_DEFINES) $(NETCDF_DEFINES) $(MPI_DEFINES) $(DIRFRC_DEFINES) $(MATH_DEFINES) $(F90_DEFINES) $*.fpp $*.f90
+	$(F90) $(F90FLAGS) $(F90_OPT_DFLT) $*.f90
+
+.cpp.o:
+	$(CC) $(CFLAGS) $(CU_DEFINES) $(CU_INCLUDES) -c $*.cpp
+
+.cu.o:  gputypes.h
+	$(NVCC) $(CU_FLAGS) $(CU_DEFINES) $(CU_INCLUDES) $($?.CU_FLAGS) -dc $?
+
+clean:
+	rm -f *.o *.linkinfo cuda.a *.f90 *.mod

@@ -1,0 +1,20 @@
+#!/bin/csh -f
+#TEST-PROGRAM ndfes
+#TEST-DESCRIP MBAR
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+${AMBERHOME}/bin/ndfes --mbar -w 0.10 -c mbar.chk mbar.metafile > mbar.out || goto error
+${AMBERHOME}/bin/ndfes-PrintFES.py mbar.chk > mbar.dat || goto error
+
+set output=mbar.dat
+
+../dacdif $output.save $output
+
+rm -f mbar.chk mbar.out
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)

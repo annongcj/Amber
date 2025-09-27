@@ -1,0 +1,63 @@
+module test_xray_non_bulk_impl_cpu
+  use xray_pure_utils
+  use funit
+  
+  implicit none
+  
+  integer, parameter, private :: rk = real_kind
+  real(real_kind), parameter :: tolerance = 1e-10  ! Absolute tolerance
+  
+  integer, parameter :: n_hkl = 4
+  integer, parameter :: n_atoms = 5
+  real(real_kind), parameter :: mSS4(n_hkl) = [ -1.0_rk, -2.0_rk, -3.0_rk, -4.0_rk]
+  integer, parameter :: hkl(3, n_hkl) = reshape([ [1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6] ], shape(hkl), order = [2, 1])
+  real(real_kind), parameter :: atom_b_factor(n_atoms) = [ 1.0_rk, 2.0_rk, 3.0_rk, 4.0_rk, 5.0_rk]
+  real(real_kind), parameter :: atom_occupancy(n_atoms) = [ 1.0_rk, 1.0_rk, 1.0_rk, 1.0_rk, 1.0_rk]
+  integer, parameter :: atom_scatter_index(n_atoms) = [ 1, 2, 2, 1, 2]
+  real(real_kind), parameter :: scatter_coefficients(2, 5, 2) = reshape([ &
+      &  [ [1.0_rk, 2.0_rk], [2.0_rk, 3.0_rk], [3.0_rk, 4.0_rk], [2.0_rk, 4.0_rk], [5.0_rk, 6.0_rk]  ], &
+      &  [ [1.5_rk, 2.5_rk], [2.5_rk, 3.5_rk], [3.5_rk, 4.5_rk], [2.5_rk, 4.5_rk], [5.5_rk, 6.5_rk]  ] &
+      & ], [2, 5, 2], order = [3, 2, 1])
+
+contains
+  
+  @test
+  subroutine test_init_finalize()
+    use xray_non_bulk_impl_cpu_module, only : init_non_bulk => init, finalize_non_bulk => finalize
+    integer :: i
+    
+    do i = 1, 3
+      call init_non_bulk(hkl, mSS4, atom_b_factor, atom_scatter_index, atom_occupancy)
+      call finalize_non_bulk()
+    end do
+  end subroutine test_init_finalize
+  
+  @test
+  subroutine test_regression()
+    use xray_non_bulk_impl_cpu_module, only : init_non_bulk => init, finalize_non_bulk => finalize, calc_f_non_bulk, get_f_non_bulk
+    use xray_atomic_scatter_factor_impl_cpu_module, only : init_atomic_scatter => init, finalize_atomic_scatter => finalize
+    
+    real(real_kind), parameter :: frac_xyz(3, n_atoms) = reshape([ [1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6], [5, 6, 7]  ], shape(frac_xyz), order = [2, 1])
+    integer :: i
+    complex(real_kind), allocatable :: f_non_bulk(:)
+    complex(real_kind) :: expected_f_non_bulk(n_hkl) = [ &
+        (3.3960282400101423d0,-2.70447895367005955d-014), &
+        (0.81453326007180693d0,-1.72233814356155063d-014), &
+        (0.26525141790081896d0,-3.32663192392960196d-015), &
+        (9.36772144740779661d-002,-1.04719258418599247d-015) &
+    ]
+
+    call init_atomic_scatter(mSS4, scatter_coefficients)
+    call init_non_bulk(hkl, mSS4, atom_b_factor, atom_scatter_index, atom_occupancy)
+    
+    call calc_f_non_bulk(frac_xyz)
+    f_non_bulk = get_f_non_bulk()
+    @assertEqual(expected_f_non_bulk, f_non_bulk, tolerance=tolerance)
+  
+    call finalize_non_bulk()
+    call finalize_atomic_scatter()
+
+  end subroutine test_regression
+
+end module test_xray_non_bulk_impl_cpu
+

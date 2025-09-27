@@ -1,0 +1,51 @@
+#!/bin/sh
+#TEST-PROGRAM pmemd
+#TEST-DESCRIP GBneck2-based continuous constant pH MD of alkyl hydroperoxide reductase subunit C 
+#TEST-PURPOSE basic
+#TEST-STATE   undocumented
+
+. ../../program_error.sh
+
+if [ -z "$TESTsander" ]; then
+   TESTsander="${AMBERHOME}/bin/pmemd"
+fi
+
+if [ -z "$DO_PARALLEL" ]; then
+   export DO_PARALLEL=" "
+else
+  export numprocs=$(echo $DO_PARALLEL | awk -f ../../numprocs.awk)
+  if [ "$numprocs" -gt  12 ]; then
+      echo " DO_PARALLEL set to $DO_PARALLEL"
+    echo " too many MPI ranks  for this test, exiting (Max MPI ranks = 12)"
+    echo "============================================================"
+    exit 0
+  fi
+fi
+
+
+cat > mdin <<EOF
+ Test of GBneck2-based continous constant pH MD on BBL
+ &cntrl                                                                        
+   ig=49,
+   nstlim = 50
+   cut=999, igb=8, saltcon=0.1,
+   ntx=1, irest=0, ntb=0, ntpr=1,
+   dt=0.002, nrespa=1,
+   ntt=1, tempi=300.0, temp0 = 300., tautp=2.0,
+   ntc=2, ntf=2, tol=0.000001,
+   ntwr = 20, 
+   iphmd=1, solvph=7.0
+/
+EOF
+
+output=mdout
+
+$DO_PARALLEL $TESTsander -O -i mdin -p 4ma9.parm7 -c min.rst7  -o $output \
+        -phmdin phmdin -phmdout phmdout -phmdparm parm < /dev/null || error
+
+../../dacdif -f $output.save $output
+../../dacdif -f phmdout.save phmdout
+/bin/rm -f mdinfo mdin restrt phmdrestrt
+
+exit 0
+

@@ -1,0 +1,101 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP signle ion non-softcore TI
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+echo `pwd`
+
+
+if ( "$1" == "CPU" ) then
+   set sander = "mpiexec -np 20 ${AMBERHOME}/bin/pmemd.MPI"
+else
+   set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+endif
+
+
+cat > mdin <<EOF
+pmemd TI NVT production
+&cntrl
+! IO =======================================
+      irest = 0       ! 0 = start, 1 = restart   THIS OPTION MUST BE PRESENT
+        ntx = 1       ! 1 = start, 5 = restart   THIS OPTION MUST BE PRESENT
+       ntxo = 1       ! read/write rst as formatted file    
+     ioutfm = 0       ! write mdcrd as netcdf
+       ntpr = 1   ! mdout print freq         THIS OPTION MUST BE PRESENT
+       ntwx = 10000
+       ntwr = 10000
+! DYNAMICS =================================
+     nstlim = 5 ! number of time steps per remd exchange
+   numexchg = 0      ! number of remd exchanges
+       imin = 0       ! 0=dynamics, 1=internal minimizer THIS OPTION MUST BE PRESENT
+      ntmin = 2       ! mini algorithm. 2=steepest       THIS OPTION MUST BE PRESENT
+         dt = 0.001   ! ps/step
+! TEMPERATURE ==============================
+      temp0 = 298.0   ! target temp
+   gamma_ln = 5.0     ! Langevin collision freq
+        ntt = 3       ! thermostat (3=Langevin)
+! PRESSURE  ================================
+        ntp = 0       ! 0=isotropic scaling
+! SHAKE ====================================
+        ntc = 2       ! 1=no shake, 2=HX constrained, 3=all constrained
+        ntf = 1       ! 1=cpt all bond E, 2=ignore HX bond E, 3=ignore all bond E
+noshakemask = "@1-16"
+! MISC =====================================
+         ig = 10101
+        ntb = 1       ! 1=periodic box
+      iwrap = 1       ! wrap crds to unit cell
+        cut = 10.0
+     nmropt = 1       ! THIS OPTION MUST BE PRESENT
+  gti_add_sc = 2
+
+       icfe = 1
+       ifsc = 0
+    clambda = 1.00000000
+    ifmbar=1, 
+    bar_intervall=1, 
+    mbar_states=17,
+    timask1 = '@1-8'
+    timask2 = '@9-16'
+    scmask1 = ''
+    scmask2 = ''
+    gti_output=1
+    ifmbar_net=1,
+     !
+/
+&wt
+type='DUMPFREQ', istep1=1000
+&end
+&wt
+  type='END',
+&end
+DISANG=$CASE.disang
+DUMPAVE=$CASE.dumpave
+
+EOF
+
+set output = md_$CASE.o
+
+set output_save = $output.$1
+
+touch dummy
+$sander -O -i mdin -c inpcrd -p prmtop -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../../dacdif -r 1.0e-7 $output_save $output
+else
+  #5 sig figs
+  ../../../../dacdif -r 1.0e-5 $output_save $output
+endif
+
+/bin/rm -f mdin restrt mdinfo dummy
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+

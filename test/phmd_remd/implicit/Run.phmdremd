@@ -1,0 +1,38 @@
+#!/bin/sh
+#TEST-PROGRAM pmemd
+#TEST-DESCRIP GBneck2-based continuous constant pH MD with pH replica exchange on BBL at two pH 
+#TEST-PURPOSE Test and demonstrate the above
+#TEST-STATE First version (Feb 2018)
+
+. ../../program_error.sh
+
+if [ -z "$TESTsander" ]; then
+   TESTsander="${AMBERHOME}/bin/sander.MPI"
+fi 
+
+if [ -z "$DO_PARALLEL" ]; then
+   echo "This is a parallel test, DO_PARALLEL must be set!"
+   exit 0
+fi
+
+numprocs=`$DO_PARALLEL ../../numprocs`
+
+if [ "$numprocs" -ne 4 -a "$numprocs" -ne 8 -a "$numprocs" -ne 12 ]; then
+   echo "This test requires 4, 8, or 12 processors!"
+   exit 0
+fi
+
+cat > groupfile <<EOF
+-O -i ph6.5.in -c w4h.rst7 -p prmtop -phmdin phmdin -phmdparm parm -phmdout rep-1.lam -phmdrestrt rep-1.phmdrst -o rep-1.mdout -r rep-1.rst -x rep-1.nc -rem 4 -remlog rem.log
+-O -i ph7.0.in -c w4h.rst7 -p prmtop -phmdin phmdin -phmdparm parm -phmdout rep-2.lam -phmdrestrt rep-2.phmdrst -o rep-2.mdout -r rep-2.rst -x rep-2.nc -rem 4 -remlog rem.log
+EOF
+
+$DO_PARALLEL $TESTsander -ng 2 -groupfile groupfile < /dev/null || error
+
+../../dacdif rep-1.mdout.save rep-1.mdout
+../../dacdif rep-1.lam.save rep-1.lam
+../../dacdif rem.log.save rem.log
+
+/bin/rm -f logfile.000 logfile.001 mdinfo.000 mdinfo.001 rep-1.mdout rep-1.nc rep-1.phmdrst rep-1.rst rep-2.mdout rep-2.nc rep-2.rst rem.log rep-1.lam rep-2.lam
+
+exit 0

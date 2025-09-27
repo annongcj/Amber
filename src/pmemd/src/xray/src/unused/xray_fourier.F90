@@ -1,0 +1,239 @@
+! <compile=optimized>
+#include "../include/assert.fh"
+module xray_fourier_module
+! This module has the fourier (non-FFT) routines for calculating X-ray forces.
+! Fourier (reciprocal) space values are stored as list of H,K,L values rather
+! than a 3D array. Normally, only H,K,L indices with an observed value are
+! saved.
+!
+! These routines all pass F90-style dimensioned arrays.
+!
+!  SUBROUTINES:
+!
+!  fourier_Fcalc     --   Caclulate structure factors using a direct
+!                         method.
+!
+!  get_residual      --   Compute standard r_work/r_free statistics
+!
+!  get_solvent_contribution -- bulk_solvent mask or other models
+!
+!  fourier_dTarget_dXYZBQ  --  Calculate the derivative of the xray restraint
+!                         energy with respect to coordinate, B, or occupancy.
+!                         Uses chain rule to combine dTarget/dF (passed
+!                         from that routine in array dF) and dF/dXYZ or
+!                         dF/dB or dF/dQ (computed in this routine).
+!
+!  dTargetLS_dF       --  Calculate a structure-factor restraint force
+!                         from the scalar difference of |Fobs| and |Fcalc|.
+!                         This uses a simple least-squares target function.
+!
+!  dTargetV_dF        --  Calculate a structure-factor restraint force
+!                         from the vector (complex) difference of Fobs 
+!                         and Fcalc.  (For use when phases are available,
+!                         as in cryoEM.
+!
+!  dTargetML_dF       --  Use the phenix maximum-likelihood target function.
+!                         (not implemented in Amber20)
+!
+! FUNCTIONS:
+!
+! atom_scatter_factor_mss4 --  Calculate the atomic scatter (f) at a specific 
+!                              resolution, given the Gaussian coefficients, 
+!                              and a modified resolution, defined as -S*S/4.0, 
+!                              where S is the reciprocal resolution. (mss4 
+!                              stands for "Minus S Squared over 4") See comments
+!                              at the beginning of fourier_Fcalc()
+
+   use xray_globals_module
+   implicit none
+      integer :: mytaskid = 0
+      real(real_kind) :: M_TWOPI = 2.d0 * 3.1415926535897932384626433832795d0
+
+   !-------------------------------------------------------------------
+contains
+
+   ! -------------------------------------------------------------------------
+   ! Combine dFcalc with respect to dXYZ, dB and/or dQ, 
+   !    with dTarget/dFcalc (passed in as dF) to get dTarget/DXYZ,
+   !    dTarget/dB or dTarget/dQ.
+
+   ! Note the here XYZ is in the fractional coordinate system; conversion
+   ! to Cartesian coordinates is done by the calling program in 
+   ! xray_get_derivative() in xray_interface.F90
+
+   ! Note Q is short for occupancy; B is short for tempFactor (aka B - factor).
+   ! Small molecule software uses a U parameter in place of B - factor.
+   ! U has a physical meaning, but B - factor is a more natural fit to Fouriers.
+
+   !     isotropic B - factor = 8 * pi ** 2 * isotropic - U
+   !     isotropic U = [U(1,1) + U(2,2) + U(3,3)]/3.0
+
+   subroutine fourier_dTarget_dXYZBQ(Fcalc, num_hkl,hkl,dF,mSS4, &
+            num_atoms,xyz,tempFactor,scatter_type_index, &
+            occupancy, dxyz,d_occupancy,d_tempFactor )
+      use xray_atomic_scatter_factor_module, only: atomic_scatter_factor
+      implicit none
+
+      ! reciprocal space arrays:
+      complex(real_kind), intent(in) :: Fcalc(num_hkl)
+      integer, intent(in) :: num_hkl
+      integer, intent(in) :: hkl(3,num_hkl)
+      real(real_kind), intent(in) :: dF(num_hkl)
+      real(real_kind), intent(in) :: mSS4(num_hkl)
+
+      ! coordinate arrays:
+      integer, intent(in) :: num_atoms
+      real(real_kind), intent(in) :: xyz(3,num_atoms)
+      real(real_kind), intent(in) :: tempFactor(num_atoms)
+      integer, intent(in) :: scatter_type_index(num_atoms)
+      real(real_kind), intent(in), optional :: occupancy(num_atoms)
+
+      ! output derivatives:
+      real(real_kind), intent(out), optional :: dxyz(3,num_atoms)
+      real(real_kind), intent(out), optional :: d_occupancy(num_atoms)
+      real(real_kind), intent(out), optional :: d_tempFactor(num_atoms)
+      !real(real_kind), intent(out), optional :: d_aniso_Bij(6,num_atoms)
+
+      ! locals
+      integer :: ihkl, iatom, i
+      real(real_kind) :: dhkl(3)
+      complex(real_kind) :: f
+      real(real_kind) :: phase, abs_Fcalc_ihkl
+      double precision time0, time1
+      logical, save :: first=.true.
+
+      if (present(dxyz)) dxyz(:,:) = 0._rk_
+      if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
+
+      call wallclock( time0 )
+
+      ! TODO: does it hurt to have if statements inside the double loop?
+!$omp parallel do private(ihkl,dhkl,iatom,phase,f) 
+      ATOM: do iatom = 1,num_atoms
+         REFLECTION: do ihkl = 1, num_work_flags
+            
+            abs_Fcalc_ihkl = abs(Fcalc(ihkl))
+            
+            if (abs_Fcalc_ihkl < 1e-3) then
+               ! Note: when Fcalc is approximately zero the phase is undefined,
+               ! so no force can be determined even if the energy is high. (Similar
+               ! to a linear bond angle.)
+               cycle REFLECTION
+            end if
+            ! s-vector by 2pi
+            dhkl = hkl(:,ihkl) * M_TWOPI ! * symmop...
+
+            phase = -sum( dhkl * xyz(:,iatom) )
+            ! f_n(s)          = atomic_scatter_factor(ihkl, scatter_type_index(iatom))
+            ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * tempFactor(iatom))
+            f = atomic_scatter_factor(ihkl, scatter_type_index(iatom)) &
+                  * exp(mSS4(ihkl) * tempFactor(iatom)) 
+   
+            f = f * cmplx(cos(phase),sin(phase), rk_)
+            ! iatom's term of F^protein_calc (S1)
+
+#if 0
+            if (present(d_occupancy)) then
+               ! FIXME: dF used to include Fcalc/|Fcalc| term
+!               d_occupancy(iatom) = d_occupancy(iatom) + &
+!                 real(f) * real(dF(ihkl)) + aimag(f) * aimag(dF(ihkl))
+            end if
+
+            if (present(occupancy)) then
+               f = f * occupancy(iatom)
+            end if
+#endif
+
+            if (present(d_tempFactor)) then
+               ! FIXME: dF used to include Fcalc/|Fcalc| term
+!               d_tempFactor(iatom) = d_tempFactor(iatom) &
+!                  + ( real(f) * real(dF(ihkl)) + aimag(f) * aimag(dF(ihkl)) ) &
+!                  * mSS4(ihkl)
+            end if
+
+            if (present(dxyz)) then
+               dxyz(:,iatom) = dxyz(:,iatom) + dhkl(:) * aimag( &
+                  f * Fcalc(ihkl) &
+               ) * dF(ihkl) / abs_Fcalc_ihkl
+            end if
+
+         end do REFLECTION
+      end do ATOM
+!$omp end parallel do
+      call wallclock( time1 )
+      dhkl_duration = dhkl_duration + time1 - time0
+      return
+
+   end subroutine fourier_dTarget_dXYZBQ
+
+   ! -------------------------------------------------------------------------
+   ! R - factor = sum(abs(Fobs - Fcalc)) / sum(Fobs)
+   ! -------------------------------------------------------------------------
+   subroutine get_residual (num_hkl,abs_Fobs,abs_Fcalc,residual,selected)
+      implicit none
+      integer, intent(in) :: num_hkl
+      real(real_kind), intent(in) :: abs_Fobs(num_hkl), abs_Fcalc(num_hkl)
+      real(real_kind), intent(out) :: residual
+      integer, intent(in), optional :: selected(num_hkl)
+      real(real_kind) :: denom
+   
+      if (present(selected)) then
+         denom = sum(abs_Fobs, selected/=0)
+         if( denom > 0._rk_ ) then
+            residual = sum( abs(abs_Fobs - abs_Fcalc), &
+               selected/=0) / denom
+         else
+            residual = 0._rk_
+         endif
+      else
+         residual = sum (abs( abs_Fobs - abs_Fcalc) ) / sum(abs_Fobs)
+      end if
+      return
+   end subroutine get_residual
+
+   !dac addition:
+   subroutine get_mss4(num_hkl,hkl_index,mSS4)
+      integer, intent(in) :: num_hkl
+      integer, intent(in) :: hkl_index(3,num_hkl)
+      real(real_kind), intent(inout) :: mss4(:)
+      integer :: ihkl, h,k,l
+      real(real_kind) :: a,b,c,alpha,beta,gamma,V,S2
+      real(real_kind) :: sina,cosa,sinb,cosb,sing,cosg
+      real(real_kind) :: astar,bstar,cstar,cosas,cosbs,cosgs
+
+      a = unit_cell(1)
+      b = unit_cell(2)
+      c = unit_cell(3)
+      alpha = 3.1415926536d0*unit_cell(4)/180.
+      beta = 3.1415926536d0*unit_cell(5)/180.
+      gamma = 3.1415926536d0*unit_cell(6)/180.
+      sina = sin(alpha)
+      cosa = cos(alpha)
+      sinb = sin(beta)
+      cosb = cos(beta)
+      sing = sin(gamma)
+      cosg = cos(gamma)
+
+      V = a*b*c*sqrt( 1.d0 - cosa**2 - cosb**2 -cosg**2 &
+          + 2.d0*cosa*cosb*cosg )
+      astar = b*c*sina/V
+      bstar = a*c*sinb/V
+      cstar = b*a*sing/V
+      cosas = (cosb*cosg - cosa)/(sinb*sing)
+      cosbs = (cosa*cosg - cosb)/(sina*sing)
+      cosgs = (cosb*cosa - cosg)/(sinb*sina)
+
+      ! work from p. 93 of Glusker, Lewis, Rossi:
+
+      do ihkl=1,num_hkl
+        h = hkl_index(1,ihkl)
+        k = hkl_index(2,ihkl)
+        l = hkl_index(3,ihkl)
+        S2 = (h*astar)**2 + (k*bstar)**2 + (l*cstar)**2  &
+           + 2*k*l*bstar*cstar*cosas + 2*l*h*cstar*astar*cosbs  &
+           + 2*h*k*astar*bstar*cosgs
+        mSS4(ihkl) = -S2/4.
+      end do
+   end subroutine get_mss4
+
+end module xray_fourier_module

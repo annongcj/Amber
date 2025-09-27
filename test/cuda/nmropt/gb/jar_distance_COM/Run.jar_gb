@@ -1,0 +1,88 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP test steered MD on 1 distance with a center of mass group
+#TEST-PURPOSE regression
+#TEST-STATE   Documented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+#Note that the GPU mdout files may have fundamental errors when diffed with the
+#CPU mdouts due to GPU not supporting Jarzynski and COM tests
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+ Test jar on 1 distance, 1 COM
+ &cntrl                                                                        
+   ig=71277,       ! set random seed
+   nstlim = 20,    ! 100 steps
+   igb=5,          ! gb solvent
+   ntb=0,          ! no periodic boundaries
+   ntx=5,          ! restart with velocities
+   irest=1, 
+   ntpr=1,         ! mdout
+   dt=0.001,       ! 1 fs timestep
+   ntt=1,          ! T coupling
+   ntc=2,          ! use shake
+   ntf=2,  
+   tol=0.000001,
+   ntwr = 200,     ! dont write rst
+   jar=1, 
+   cut=99999,
+ /
+ &wt type='DUMPFREQ', istep1=2  /
+ &wt type='END'   /
+DISANG=distCOM_gb.RST
+DUMPAVE=distCOM_gb_vs_t
+LISTIN=POUT
+LISTOUT=POUT
+/
+EOF
+
+cat > distCOM_gb.RST << EOF
+# jar on a distance, 1 COM
+ &rst  iat=1181,-1, r2=6.34, rk2 = 10.0, r2a=7.34, igr1=0,0,0,0, igr2=1115,1113,1119,0,   /
+EOF
+
+set output = mdout
+set vs_t_output = distCOM_gb_vs_t
+set output_save = $output.GPU_$1
+set vs_t_output_save = $vs_t_output.GPU_$1
+
+touch dummy
+$DO_PARALLEL $sander -O -p ../myoglobin_gb.prmtop -c ../myoglobin_gb.inpcrd -i mdin -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../../dacdif -r 1.0e-7 $output_save $output
+  ../../../../dacdif -r 1.0e-7 $vs_t_output_save $vs_t_output
+else
+  #4 sig figs
+  ../../../../dacdif -r 1.0e-4 $output_save $output
+  ../../../../dacdif -r 1.0e-4 $vs_t_output_save $vs_t_output
+endif
+
+/bin/rm -f mdin restrt mdinfo logfile dummy
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+

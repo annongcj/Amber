@@ -1,0 +1,481 @@
+module test_xray_scaling_impl_cpu_vs_cctbx
+  use funit
+  use xray_pure_utils, only: real_kind
+  implicit none
+  integer, parameter , private :: rk = real_kind
+  real(real_kind), parameter :: tolerance = 1d-8  ! Absolute tolerance
+
+  integer, parameter :: unit_num = 15
+  
+  real(real_kind), allocatable :: resolution(:)
+  real(real_kind), allocatable :: absFobs(:)
+  complex(real_kind), allocatable :: Fprot(:)
+  complex(real_kind), allocatable :: Fbulk(:)
+  complex(real_kind), allocatable :: Fcalc(:)
+  real(real_kind), allocatable :: expected_absFcalc(:)
+  real(real_kind), allocatable :: mss4(:)
+  logical, allocatable :: is_free_flag(:)
+  integer, allocatable :: hkl(:, :) ! (3, n_reflexes)
+  integer :: n_test_cases
+  integer, allocatable :: index(:)
+  integer, allocatable :: index_inv(:)
+
+  ! Input scales
+  real(real_kind), allocatable :: k_iso_in(:)
+  real(real_kind), allocatable :: k_iso_exp_in(:)
+  real(real_kind), allocatable :: k_aniso_in(:)
+  real(real_kind), allocatable :: k_bulk_in(:)
+
+  ! Expected scales
+  real(real_kind), allocatable :: k_iso_out(:)
+  real(real_kind), allocatable :: k_iso_exp_out(:)
+  real(real_kind), allocatable :: k_aniso_out(:)
+  real(real_kind), allocatable :: k_bulk_out(:)
+
+
+  integer :: n_reflexes
+  integer :: n_work
+  
+  abstract interface
+  subroutine optimize_scales_interface()
+  end subroutine optimize_scales_interface
+  end interface
+
+  @testParameter
+  type, extends(AbstractTestParameter) :: ScalingTestCase
+    character(:), allocatable :: proc_name
+    character(:), allocatable :: filename_prefix
+    integer :: file_number
+  contains
+    procedure :: toString => ScalingTestCaseToString
+    procedure :: toFilename => ScalingTestCaseToFilename
+  end type ScalingTestCase
+
+
+  @TestCase(constructor=newScalingTestCase)
+  type, extends(ParameterizedTestCase) :: Test_Filename
+    character(:), allocatable :: proc_name
+    character(:), allocatable :: filename
+    logical :: scaling_initialized
+  contains
+    procedure :: setUp     ! overides generic
+    procedure :: tearDown  ! overrides generic
+  end type Test_Filename
+
+contains
+
+
+  function get_k_iso_exp_parameters() result(params)
+    type (ScalingTestCase), allocatable :: params(:)
+    type (ScalingTestCase), allocatable :: incomplete_params(:)
+    integer :: i, k, file_number
+    integer :: n_total_test
+
+    ! Number of test files encoded in incomplete_params(i)%file_number
+    incomplete_params = [ &
+      & ScalingTestCase("update_k_iso_exp", "data/generated/test_scaling_update_k_iso_exp_", 4), &
+      & ScalingTestCase("update_k_aniso", "data/generated/test_scaling_update_k_aniso_", 4), &
+      & ScalingTestCase("update_k_bulk_k_iso", "data/generated/test_scaling_update_k_bulk_k_iso_", 4), &
+      & ScalingTestCase("update_k_bulk_k_iso_via_cubic_eq", "data/generated/test_scaling_update_k_bulk_k_iso_via_cubic_eq_", 4), &
+      & ScalingTestCase("optimize_scale_factors", "data/generated/test_scaling_full_", 4) &
+    & ]
+
+    n_total_test = 0
+    do i = 1, size(incomplete_params)
+      n_total_test = n_total_test + incomplete_params(i)%file_number
+    end do
+
+    allocate(params(n_total_test))
+
+    k = 1
+    do i = 1, size(incomplete_params)
+      do file_number = 1, incomplete_params(i)%file_number
+        params(k) = incomplete_params(i)
+        params(k)%file_number = file_number
+        k = k + 1
+      end do
+    end do
+
+  end function get_k_iso_exp_parameters
+
+  ! Constructor
+  function newScalingTestCase(testParameter) result(tst)
+    type (Test_Filename) :: tst
+    type (ScalingTestCase), intent(in) :: testParameter
+    tst%filename = testParameter%toFilename()
+    tst%proc_name = testParameter%proc_name
+  end function newScalingTestCase
+
+  subroutine read_header()
+    use xray_pure_utils, only: index_sort, index_partition, calc_resolution
+    implicit none
+    
+    integer :: i
+    character(len=256) :: comment
+
+    real(real_kind) :: recip(3, 3)
+
+    ! Orthogonal unit cell (a=10, b=13, c=17)
+    recip(:, 1) = (/ 1 / 10.0_rk, 0.0_rk, 0.0_rk /)
+    recip(:, 2) = (/ 0.0_rk, 1 / 13.0_rk, 0.0_rk /)
+    recip(:, 3) = (/ 0.0_rk, 0.0_rk, 1 / 17.0_rk /)
+
+
+    read (unit_num, '(A)') comment
+    read (unit_num, *) n_reflexes
+  
+    allocate(hkl(3, n_reflexes))
+    allocate(absFobs(n_reflexes))
+    allocate(Fprot(n_reflexes))
+    allocate(Fbulk(n_reflexes))
+    allocate(is_free_flag(n_reflexes))
+  
+    allocate(k_iso_exp_in(n_reflexes))
+    allocate(k_iso_exp_out(n_reflexes))
+  
+    allocate(k_iso_in(n_reflexes))
+    allocate(k_iso_out(n_reflexes))
+  
+    allocate(k_aniso_in(n_reflexes))
+    allocate(k_aniso_out(n_reflexes))
+  
+    allocate(k_bulk_in(n_reflexes))
+    allocate(k_bulk_out(n_reflexes))
+  
+    allocate(mss4(n_reflexes))
+    allocate(index(n_reflexes))
+    allocate(index_inv(n_reflexes))
+    allocate(resolution(n_reflexes))
+  
+    read (unit_num, '(A)') comment
+    read (unit_num, *) hkl(1,:)
+  
+    read (unit_num, '(A)') comment
+    read (unit_num, *) hkl(2,:)
+  
+    read (unit_num, '(A)') comment
+    read (unit_num, *) hkl(3,:)
+  
+    read (unit_num, '(A)') comment
+    read (unit_num, *) absFobs
+  
+    read (unit_num, '(A)') comment
+    read (unit_num, *) Fprot
+  
+    read (unit_num, '(A)') comment
+    read (unit_num, *) Fbulk
+  
+    read (unit_num, '(A)') comment
+    read (unit_num, *) is_free_flag
+  
+    read (unit_num, '(A)') comment
+    read (unit_num, *) n_test_cases
+
+    resolution = calc_resolution(hkl, recip)
+    n_work = n_reflexes - count(is_free_flag)
+  
+    do i = 1, n_reflexes
+      index(i) = i
+      index_inv(i) = i
+    end do
+  
+    ! Partition reflexes as [WORK|FREE]
+    call index_partition(.not. is_free_flag, index)
+    ! Sort work set indices by resolution
+    call index_sort(resolution, index(:n_work))
+    ! Sort test set indices by resolution
+    call index_sort(resolution, index(n_work + 1:))
+  
+    resolution = resolution(index)
+    hkl = hkl(:, index)
+    absFobs = absFobs(index)
+    Fprot = Fprot(index)
+    Fbulk = Fbulk(index)
+    index_inv(index) = index_inv
+
+    mss4 = -1 / resolution ** 2 / 4
+    
+  end subroutine read_header
+
+  subroutine read_test_case()
+    implicit none
+    character(len=256) :: comment
+    
+    read (unit_num, '(A)') comment
+    read (unit_num, *) k_iso_exp_in
+    k_iso_exp_in = k_iso_exp_in(index)
+    
+    read (unit_num, '(A)') comment
+    read (unit_num, *) k_iso_exp_out
+    k_iso_exp_out = k_iso_exp_out(index)
+    
+    read (unit_num, '(A)') comment
+    read (unit_num, *) k_iso_in
+    k_iso_in = k_iso_in(index)
+    
+    read (unit_num, '(A)') comment
+    read (unit_num, *) k_iso_out
+    k_iso_out = k_iso_out(index)
+    
+    read (unit_num, '(A)') comment
+    read (unit_num, *) k_aniso_in
+    k_aniso_in = k_aniso_in(index)
+    
+    read (unit_num, '(A)') comment
+    read (unit_num, *) k_aniso_out
+    k_aniso_out = k_aniso_out(index)
+    
+    read (unit_num, '(A)') comment
+    read (unit_num, *) k_bulk_in
+    k_bulk_in = k_bulk_in(index)
+    
+    read (unit_num, '(A)') comment
+    read (unit_num, *) k_bulk_out
+    k_bulk_out = k_bulk_out(index)
+  
+  end subroutine read_test_case
+  
+  pure function max_abs_diff_rescaled(a, b) result(result)
+    real(real_kind), intent(in) :: a(:), b(:)
+    real(real_kind) :: result
+    result = maxval(abs(a/max(maxval(abs(a)), 1.0_rk) - b/max(maxval(abs(b)), 1.0_rk)))
+  end function max_abs_diff_rescaled
+  
+  pure function max_abs_diff(a, b) result(result)
+    real(real_kind), intent(in) :: a(:), b(:)
+    real(real_kind) :: result
+    result = maxval(abs(a - b))
+  end function max_abs_diff
+  
+  @test(testParameters={get_k_iso_exp_parameters()})
+  subroutine test_proc(this)
+    implicit none
+    class (Test_Filename), intent(inout) :: this
+    procedure(optimize_scales_interface), pointer :: update_scales_func
+
+    if (this%proc_name == "optimize_scale_factors") then
+      update_scales_func => optimize_scale_factors_proc
+    elseif (this%proc_name == "update_k_aniso") then
+      update_scales_func => update_k_aniso_proc
+    elseif (this%proc_name == "update_k_iso_exp") then
+      update_scales_func => update_k_iso_exp_proc
+    elseif (this%proc_name == "update_k_bulk_k_iso_via_cubic_eq") then
+      update_scales_func => update_k_bulk_k_iso_via_cubic_eq_proc
+    elseif (this%proc_name == "update_k_bulk_k_iso") then
+      update_scales_func => update_k_bulk_k_iso_proc
+    else
+      @assertTrue(.FALSE., message='Unknown optimized function name: ' // this%proc_name)
+      return
+    end if
+    call test_update_scales(this, update_scales_func)
+    
+  end subroutine test_proc
+  
+  subroutine update_k_iso_exp_proc()
+    use xray_scaling_impl_cpu_module, only: update_k_iso_exp
+    use xray_scaling_data_module, only: k_iso, k_aniso, k_bulk
+    use xray_pure_utils, only: calc_r_factor
+    implicit none
+    real(real_kind) :: r_work
+    real(real_kind) :: absFcalc(size(absFobs))
+    logical :: updated
+
+    r_work = calc_r_factor(absFobs(:n_work), abs(Fcalc(:n_work)))
+    absFcalc = abs((Fprot + k_bulk * Fbulk))
+
+    updated = update_k_iso_exp(absFobs, k_iso, absFcalc, mss4, r_work)
+    
+  end subroutine update_k_iso_exp_proc
+  
+  subroutine update_k_aniso_proc()
+    use xray_scaling_impl_cpu_module, only: update_k_aniso
+    use xray_scaling_data_module, only: k_iso, k_iso_exp, k_bulk
+    use xray_pure_utils, only: calc_r_factor
+    implicit none
+    real(real_kind) :: r_work
+    real(real_kind) :: absFcalc(size(absFobs))
+    logical :: updated
+    
+    r_work = calc_r_factor(absFobs(:n_work), abs(Fcalc(:n_work)))
+    absFcalc = k_iso * k_iso_exp * abs(Fprot + k_bulk * Fbulk)
+    
+    updated = update_k_aniso(absFobs, absFcalc, hkl(1,:), hkl(2,:), hkl(3,:), r_work)
+
+  end subroutine update_k_aniso_proc
+  
+  subroutine update_k_bulk_k_iso_proc()
+    use xray_scaling_impl_cpu_module, only: update_k_bulk_k_iso
+    use xray_scaling_data_module, only: k_iso, k_iso_exp, k_bulk, n_resolution_bins
+    use xray_pure_utils, only: calc_r_factor
+    implicit none
+    real(real_kind) :: k_bulk_in_bin(n_resolution_bins)
+    real(real_kind) :: k_iso_in_bin(n_resolution_bins)
+    real(real_kind) :: r_work
+    logical :: updated
+    
+    r_work = calc_r_factor(absFobs(:n_work), abs(Fcalc(:n_work)))
+    updated = update_k_bulk_k_iso(absFobs, Fprot, Fbulk, mss4, k_bulk_in_bin, k_iso_in_bin, r_work)
+
+  end subroutine update_k_bulk_k_iso_proc
+
+  subroutine update_k_bulk_k_iso_via_cubic_eq_proc()
+    use xray_scaling_impl_cpu_module, only: update_k_bulk_k_iso_via_cubic_eq
+    use xray_scaling_data_module, only: k_iso, k_iso_exp, k_bulk, n_resolution_bins
+    use xray_pure_utils, only: calc_r_factor
+    implicit none
+    real(real_kind) :: k_bulk_in_bin(n_resolution_bins)
+    real(real_kind) :: k_iso_in_bin(n_resolution_bins)
+    real(real_kind) :: r_work
+    logical :: updated
+
+    r_work = calc_r_factor(absFobs(:n_work), abs(Fcalc(:n_work)))
+    ! TODO: need to properly initialize k_bulk_in_bin, k_iso_in_bin
+    k_bulk_in_bin = 0
+    k_iso_in_bin = 1
+    updated = update_k_bulk_k_iso_via_cubic_eq(absFobs, Fprot, Fbulk, mss4, k_bulk_in_bin, k_iso_in_bin, r_work)
+
+  end subroutine update_k_bulk_k_iso_via_cubic_eq_proc
+
+  subroutine optimize_scale_factors_proc()
+    use xray_scaling_impl_cpu_module, only: optimize_scale_factors, rescale, combine
+    use xray_pure_utils, only: calc_r_factor
+    implicit none
+    real(real_kind) :: r_work
+
+    r_work = calc_r_factor(absFobs(:n_work), abs(Fcalc(:n_work)))
+    call optimize_scale_factors(absFobs, Fprot, Fbulk, mss4, hkl)
+    Fcalc = rescale(combine(Fprot, Fbulk))
+    r_work = calc_r_factor(absFobs(:n_work), abs(Fcalc(:n_work)))
+
+  end subroutine optimize_scale_factors_proc
+  
+  subroutine test_update_scales(this, update_scales_func)
+    use xray_scaling_impl_cpu_module, only: optimize_scale_factors, init, finalize, rescale, combine
+    use xray_scaling_data_module, only: k_iso, k_aniso, k_bulk, k_iso_exp
+    implicit none
+    class (Test_Filename), intent(inout) :: this
+    character(len=3) :: test_case_str
+    character(:), allocatable :: error_message_suffix
+    procedure(optimize_scales_interface), pointer :: update_scales_func
+
+    integer :: i, test_case, file_number
+ 
+    open (unit = unit_num, file = this%filename, action = 'read')
+
+    call read_header()
+ 
+    do test_case = 1, n_test_cases
+
+      call read_test_case()
+
+      call init(resolution, [1.0_rk/10.0_rk, 1.0_rk/13.0_rk, 1.0_rk/17.0_rk], n_work, hkl)
+      this%scaling_initialized = .TRUE.
+
+      k_aniso = k_aniso_in
+      k_iso_exp = k_iso_exp_in
+      k_iso = k_iso_in
+      k_bulk = k_bulk_in
+
+      Fcalc = rescale(combine(Fprot, Fbulk))
+
+      call update_scales_func()
+
+      write(test_case_str, "(I2)") test_case
+      error_message_suffix = "File: "// this%filename // "; test #" // test_case_str
+
+      ! Important Note: before running tests, comment out coefficients re-initialization in the full loop
+      ! optimize_scale_factors() in xray_scaling_impl_cpu.F90
+      ! Otherwise, input coefficients arrays would be ignored and tests fail
+
+      ! Note k_aniso values doesn't always match cctbx with high accuracy.
+      ! Apparently it's because of slightly different matrix inversion procedures and polynomial approximation
+
+      @assertLessThanOrEqual(max_abs_diff(k_aniso, k_aniso_out), 1e-5_real_kind,"k_aniso   " // error_message_suffix)
+      @assertLessThanOrEqual(max_abs_diff(k_iso_exp, k_iso_exp_out), tolerance, "k_iso_exp " // error_message_suffix)
+      @assertLessThanOrEqual(max_abs_diff(k_iso, k_iso_out), tolerance,         "k_iso     " // error_message_suffix)
+      @assertLessThanOrEqual(max_abs_diff(k_bulk, k_bulk_out), tolerance,       "k_bulk    " // error_message_suffix)
+
+      call finalize()
+      this%scaling_initialized = .FALSE.
+
+    end do
+
+    close (unit=unit_num)
+    call dealloc_tmp_arrays()
+
+  end subroutine test_update_scales
+  
+  subroutine dealloc_tmp_arrays()
+  
+    if (allocated(hkl)) deallocate(hkl)
+    if (allocated(absFobs)) deallocate(absFobs)
+    if (allocated(Fprot)) deallocate(Fprot)
+    if (allocated(Fbulk)) deallocate(Fbulk)
+    if (allocated(is_free_flag)) deallocate(is_free_flag)
+    if (allocated(k_iso_exp_in)) deallocate(k_iso_exp_in)
+    if (allocated(k_iso_exp_out)) deallocate(k_iso_exp_out)
+    if (allocated(k_iso_in)) deallocate(k_iso_in)
+    if (allocated(k_iso_out)) deallocate(k_iso_out)
+    if (allocated(k_aniso_in)) deallocate(k_aniso_in)
+    if (allocated(k_aniso_out)) deallocate(k_aniso_out)
+    if (allocated(k_bulk_in)) deallocate(k_bulk_in)
+    if (allocated(k_bulk_out)) deallocate(k_bulk_out)
+    if (allocated(mss4)) deallocate(mss4)
+    if (allocated(index)) deallocate(index)
+    if (allocated(index_inv)) deallocate(index_inv)
+    if (allocated(resolution)) deallocate(resolution)
+    
+  end subroutine dealloc_tmp_arrays
+
+  function ScalingTestCaseToFilename(this) result(string)
+    class (ScalingTestCase), intent(in) :: this
+    character(:), allocatable :: string
+
+    character(len=1024) :: buffer
+
+    write(buffer, '(A,I2.2,A)') this%filename_prefix, this%file_number, ".txt"
+    string = trim(buffer)
+
+  end function ScalingTestCaseToFilename
+
+  function ScalingTestCaseToString(this) result(string)
+    class (ScalingTestCase), intent(in) :: this
+    character(:), allocatable :: string
+
+    character(len=80) :: buffer
+
+    write(buffer, '(A35,"::",I2)') this%proc_name, this%file_number
+    string = trim(buffer)
+
+  end function ScalingTestCaseToString
+
+  subroutine setUp(this)
+    implicit none
+    class (Test_Filename), intent(inout) :: this
+
+    this%scaling_initialized = .FALSE.
+
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    use xray_scaling_impl_cpu_module, only:  finalize
+    implicit none
+    class (Test_Filename), intent(inout) :: this
+    logical :: file_is_open
+
+    if (this%scaling_initialized) then
+      call finalize()
+      this%scaling_initialized = .FALSE.
+    end if
+
+    inquire(unit=unit_num, opened=file_is_open)
+    if ( file_is_open ) then
+      close (unit=unit_num)
+    end if
+
+    call dealloc_tmp_arrays()
+
+  end subroutine tearDown
+
+end module test_xray_scaling_impl_cpu_vs_cctbx
+

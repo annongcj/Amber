@@ -1,0 +1,74 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP Vary temperature target linearly and slowly using nmropt=1
+#TEST-PURPOSE regression
+#TEST-STATE   ok
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+Test of temp scale using nmropt=1
+ &cntrl
+  nstlim=20,dt=0.001,ntt=1,
+  ntpr=1,
+  igb=5,ntb=0,
+  tempi=0.0,
+  nmropt=1,
+  ig=71277,
+  cut=99999,
+ /
+ &wt type='TEMP0', istep1=0, istep2=10,
+                   value1=0.0, value2=100.0
+ /
+ &wt type='TEMP0', istep1=11, istep2=20,
+                   value1=100.0, value2=150.0
+ /
+ &wt type='END' /
+EOF
+
+set output = mdout
+set output_save = $output.GPU_$1
+
+touch dummy
+$DO_PARALLEL $sander -O -p ../myoglobin_gb.prmtop -c ../myoglobin_gb.inpcrd -i mdin -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../../dacdif -r 1.0e-7 $output_save $output
+else
+  if ( $?DO_PARALLEL ) then
+    #Use slightly less precision for parallel runs.
+    #3 sig figs
+    ../../../../dacdif -r 1.0e-3 $output_save $output
+  else
+    #4 sig figs
+    ../../../../dacdif -r 1.0e-4 $output_save $output
+  endif
+endif
+
+/bin/rm -f mdin restrt mdinfo profile_mpi logfile mdcrd dummy
+
+exit 0
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+

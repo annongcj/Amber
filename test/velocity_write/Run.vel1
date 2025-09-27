@@ -1,0 +1,47 @@
+#!/bin/sh
+#TEST-PROGRAM sander
+#TEST-DESCRIP Test velocities write
+#TEST-PURPOSE regression, basic
+#TEST-STATE   ok
+
+. ../program_error.sh
+sander=${AMBERHOME}/bin/sander
+if [ ! -z "$DO_PARALLEL" ] ; then
+  sander=${AMBERHOME}/bin/sander.MPI
+  numprocs=`$DO_PARALLEL ../numprocs | sed -n '$p'`
+  if [ "$numprocs" -gt 5 ] ; then
+    echo "This test cannot be run with more than 5 processes."
+    echo ""
+    exit 0
+  fi
+fi
+
+if [ ! -z "$TESTsander" ]; then
+   sander=$TESTsander
+fi
+
+cat > vel1.in <<EOF
+Write velocities
+ &cntrl
+        imin = 0, nstlim = 10, dt = 0.002,
+        irest = 1, ntx = 5,
+        ioutfm = 0,
+        ntwx = 2, ntwv = 2, ntwf = 2, ntwr = 0, ntpr = 1,
+        tempi = 300.0, temp0 = 300.0, ig = 1,
+        ntt = 1, tautp = 5.0,
+        ntc = 2, ntf = 2, ntb = 0, tol = 0.000001,
+        cut = 99.0,
+        ntr = 0, offset = 0.09,
+        nscm = 500, igb = 5,
+ &end
+EOF
+
+$DO_PARALLEL $sander -O -i vel1.in -p ../rem_gb_2rep/ala3.top -c ../rem_gb_2rep/mdrestrt -o vel1.out -x vel1.crd -v vel1.vel -frc vel1.frc < /dev/null || error
+
+../dacdif vel1.vel.save vel1.vel
+../dacdif vel1.crd.save vel1.crd
+../dacdif vel1.frc.save vel1.frc 
+
+/bin/rm -f restrt mdinfo vel1.out vel1.in
+exit 0
+

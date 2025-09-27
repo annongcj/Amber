@@ -1,0 +1,48 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+ 
+if( ! $?TESTsander ) set TESTsander = "${AMBERHOME}/bin/pmemd"
+ 
+if( ! $?DO_PARALLEL ) then
+    setenv DO_PARALLEL " "
+endif
+
+cat > mdin.0 <<EOF
+ AMBER input
+&cntrl
+imin = 0,
+ntb = 0, cut = 9999.9,
+ntpr = 1, ntwx = 1,
+nstlim = 25, dt = 0.004,
+ntc = 2, ntf = 1, iwrap = 0,
+temp0 = 298.15, ntt = 3, gamma_ln = 2.0,
+irest = 0, ntx = 1,
+icfe = 1, ifsc = 1,
+scalpha = 0.2, scbeta = 50.0,
+gti_add_sc = 1, gti_chg_keep = 1, gti_lam_sch = 1,
+gti_ele_sc = 1, gti_vdw_sc = 1, gti_cut = 1,
+crgmask = "" timask1 = ":1", timask2 = ":2",
+tishake = 2, gti_syn_mass = 1, clambda = 0.50,
+scmask1 = ":1@C1,H1,H2,H3,H5,H7,EP1", scmask2 = ":2@H3,H5,H1,EP1",
+ifmbar = 1, ifmbar_net = 1, mbar_states = 5, bar_intervall = 1,
+mbar_lambda = 0.0 0.25 0.5 0.75 1.0,
+restraint_wt = 0.0, ntr = 0,
+ig=5,
+/
+EOF
+
+$DO_PARALLEL $TESTsander -O -i mdin.0 -o out2.0 -p prmtop_vacuum \
+    -c rst_vacuum -r restrt2.0  < /dev/null || goto error
+
+../../../dacdif out2.0.save out2.0
+
+/bin/rm -f mdin.0 mdinfo mdcrd
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+

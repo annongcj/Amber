@@ -1,0 +1,64 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  echo "This test is set up for parallel simulations only!"
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+  set numprocs = `$DO_PARALLEL ../../../numprocs`
+  if( "$numprocs" != 4 ) then
+    echo "This test requires 4 GPUs."
+    exit(0)
+  endif
+endif
+
+cat > groupfile << EOF
+# 1.00 ASH + 0.00 ASP
+-O -p ala2_ash_1.0.parm7 -c ala2_ash.heat.rst7 -o rem.out --suffix 000
+# 0.67 ASH + 0.33 ASP
+-O -p ala2_ash_0.67.parm7 -c ala2_ash.heat.rst7 -o rem.out -suffix 001
+# 0.33 ASH + 0.67 ASP
+-O -p ala2_ash_0.33.parm7 -c ala2_ash.heat.rst7 -o rem.out -suffix 002
+# 0.00 ASH + 1.00 ASP
+-O -p ala2_ash_0.0.parm7 -c ala2_ash.heat.rst7 -o rem.out -suffix 003
+EOF
+
+cat > mdin << EOF
+Replica exchange input file
+ &cntrl
+   imin=0, nstlim=100, numexchg=10,
+   igb=5, ntb=0, dt=0.002, ntt=3,
+   gamma_ln=1.0, ntc=2, ntf=2,
+   ntpr=50, temp0=300, cut=999.0,
+   irest=1, ntx=5, ig=71277,
+ /
+EOF
+
+$DO_PARALLEL $sander -O -ng 4 -groupfile groupfile -rem 3 -remlog rem.log < /dev/null || error
+
+../../../dacdif rem.log.$1.save rem.log
+../../../dacdif -r 1.0e-4 rem.out.000.$1.save rem.out.000
+
+/bin/rm -f restrt.00? mdinfo.00? mdcrd.00? rem.type $output.00[1-3] groupfile logfile.00? mdin 2>&1 > /dev/null
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+

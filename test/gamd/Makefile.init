@@ -1,0 +1,20 @@
+# Makefile for Gaussian accelerated molecular dynamics tests
+
+all: test
+
+pme:
+	@echo "Testing GaMD with PME"
+	@-cd dhfr_pme && ./Run.pme.gamd1 $(OPT) && cp -v pmemd.pme.gamd1 pmemd.pme.gamd1.save
+	@-cd dhfr_pme && ./Run.pme.gamd2 $(OPT) && cp -v pmemd.pme.gamd2 pmemd.pme.gamd2.save
+	@-cd dhfr_pme && ./Run.pme.gamd3 $(OPT) && cp -v pmemd.pme.gamd3 pmemd.pme.gamd3.save
+
+gb:
+	@echo "Testing GaMD with GB"
+	@-cd rna_gb && ./Run.gb.gamd1 $(OPT) && cp -v pmemd.gb.gamd1 pmemd.gb.gamd1.save
+	@-cd rna_gb && ./Run.gb.gamd2 $(OPT) && cp -v pmemd.gb.gamd2 pmemd.gb.gamd2.save
+	@-cd rna_gb && ./Run.gb.gamd3 $(OPT) && cp -v pmemd.gb.gamd3 pmemd.gb.gamd3.save
+
+test: pme gb
+
+pmemd: 
+	-$(MAKE) test OPT=pmemd

@@ -1,0 +1,61 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.MPI midpoint
+#TEST-DESCRIP canonical ensemble, periodic boundaries, Ethaline
+#TEST-PURPOSE regression, basic, pedagogical
+#TEST-STATE   ok
+
+set sander = "${AMBERHOME}/bin/sander"
+if( $?TESTsander ) then
+   set sander = $TESTsander
+endif
+
+if( ! $?DO_PARALLEL ) then
+    setenv DO_PARALLEL " "
+endif
+
+cat > mdin <<EOF
+ MD for Ethaline (1:2 ratio Chcl and EG)
+ &cntrl
+   ntx=5, irest=1,                   ! read coordinates
+   ntb = 1,                          ! constant volume
+   nstlim=10,                        ! MD for 10 steps
+   ntpr=1, ntwr=10,                  ! output settings
+   dt=0.0005,                        ! timestep in ps 
+   ig=71277,                         ! random seed
+   cut = 10.0,                       ! non-bond cut off
+   temp0 = 298.15, tempi = 298.15,   ! temerature settings
+   ischeme = 1,                      !! Leapfrog middle scheme
+   ithermostat = 1,                  !! Langevin thermostat
+   therm_par = 100,                  !! thermostat parameter in ps^-1
+   midpoint = 1                      ! midpoint = 1
+ /
+ &ewald
+   nfft1=60, nfft2=60, nfft3=60, netfrc=0, skinnb = 2.0
+ /
+EOF
+$DO_PARALLEL $sander -O -i mdin -c inpcrd -o mdout.ETH_middle_scheme_midpoint || goto error
+
+if ( `basename $sander` == "pmemd.mic_offload.MPI" ) then
+../../dacdif -r 1.0e-8 mdout.ETH_middle_scheme_midpoint.save mdout.ETH_middle_scheme_midpoint
+/bin/rm -f mdin restrt mdinfo logfile mdcrd
+exit(0)
+
+else
+
+../../dacdif mdout.ETH_middle_scheme_midpoint.save mdout.ETH_middle_scheme_midpoint
+/bin/rm -f mdin restrt mdinfo logfile mdcrd
+exit(0)
+end if
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+
+
+

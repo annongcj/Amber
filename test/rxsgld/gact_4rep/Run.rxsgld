@@ -1,0 +1,86 @@
+#!/bin/sh
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#set echo
+#setenv DO_PARALLEL='mpirun -np 4'
+
+. ../../program_error.sh
+sander="${AMBERHOME}/bin/sander.MPI"
+
+
+if [ ! -z "$TESTsander" ]; then
+   sander=$TESTsander
+fi
+
+if [ -z "$DO_PARALLEL" ]; then
+   echo "RXSGLD requires a parallel environment!"
+   exit 0
+fi
+
+numprocs=`$DO_PARALLEL ../../numprocs`
+
+if [ "`basename $sander`" = 'sander.MPI' ]; then
+   if [ "$numprocs" -ne 4 -a "$numprocs" -ne 8 -a "$numprocs" -ne 12 -a "$numprocs" -ne 16 ]; then
+      echo "This test case requires a multiple of 4 MPI threads!"
+      echo "Only using "$numprocs""
+      exit 0
+   fi
+else
+   if [ "$numprocs" -ne 8 -a "$numprocs" -ne 12 -a "$numprocs" -ne 16 ]; then
+      echo "This test case requires 8, 12, or 16 MPI threads!"
+      exit 0
+   fi
+fi
+
+log=rxsgld.log
+output=rxsgld.out
+/bin/rm -f $log $output.00? groupfile
+
+
+TOP=prmtop
+CRD=inpcrd
+i=0
+for SGFT in "0.0" "0.5" "0.8" "1.0" ; do
+  EXT=`printf "%03i" $i`
+  cat > rxsgld.in.$EXT <<EOF
+Ala3 GB RXSGLD
+&cntrl
+   imin = 0, nstlim = 10, dt = 0.002,
+   ntx = 5, irest = 1, ig = 314159,
+   ntwx = 1000, ntwe = 0, ntwr = 500, ntpr = 1,
+   ioutfm = 0, ntxo = 1,
+   ntb=1, ntp=0, tautp=5.0, taup=5.0,
+   ntt = 1, tautp = 5.0, tempi = 0.0, temp0 = 300.0 ,
+   ntc = 2, tol = 0.000001, ntf = 2, 
+   cut = 10.0, nscm = 1000, gamma_ln=0.0,
+   numexchg = 5,
+   isgld=1,tsgavg=0.2,sgft=$SGFT, 
+&end
+EOF
+ echo "-O  -i rxsgld.in.$EXT -p $TOP -c $CRD -o rxsgld.out.$EXT -x rxsgld.trj.$EXT -r rst7.$EXT" >> groupfile
+ i=$(( $i + 1 ))
+done
+
+
+$DO_PARALLEL $sander -O -ng 4 -groupfile groupfile  -rem 1  -remlog $log < /dev/null || error
+
+
+DACDIF=../../dacdif
+DIFFOPTS=""
+if [ "$PREC_MODEL" != "DPFP" ] ; then
+  DIFFOPTS="-r 0.00004"
+fi
+$DACDIF rxsgld.out.000.save rxsgld.out.000 $DIFFOPTS
+$DACDIF rxsgld.out.001.save rxsgld.out.001 $DIFFOPTS
+$DACDIF rxsgld.out.002.save rxsgld.out.002 $DIFFOPTS
+$DACDIF rxsgld.out.003.save rxsgld.out.003 $DIFFOPTS
+$DACDIF rxsgld.log.save rxsgld.log
+
+# Cleanup
+rm rxsgld.in.00? mdinfo.00? rst7.00? groupfile rxsgld.trj.00? rem.type logfile.00?
+
+exit 0
+

@@ -1,0 +1,49 @@
+#!/bin/sh
+#TEST-PROGRAM sander
+#TEST-DESCRIP pGM gas phase (eedmeth=4) test
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+if [ -z "$TESTsander" ]; then
+   TESTsander="$AMBERHOME/bin/sander"
+fi
+
+if [ -z "$DO_PARALLEL" ]; then
+   DO_PARALLEL=" "
+else
+   echo "This test not set up for parallel"
+   echo " cannot run in parallel with sander"
+   exit 1
+fi
+
+echo "Run $DO_PARALLEL $TESTsander in `pwd`"
+
+cat > mdin <<EOF
+  single point calc.
+ &cntrl
+   imin=0, nstlim=100,
+   irest=0, ntx=1,
+   ntb=0, ntt=0, temp0=0,
+   ntc=1, ntf=1, tol=0.0000001, 
+   cut=25., 
+   ntpr=10, ntwr=1000, ntwx=1000,
+   dt=0.001,
+   ipgm=1,
+ /
+ &ewald
+  skinnb=1.,ew_coeff=0.35,nfft1=30,nfft2=30,nfft3=30,order=8,vdwmeth=0,
+  eedmeth=4,
+ /
+ &pol_gauss
+   pol_gauss_verbose=0,dipole_scf_tol=0.0000000001,ee_dsum_cut=15.,
+   scf_cg_niter=2000,scf_solv_opt=1,dipole_scf_init=1
+ /
+EOF
+
+output="gas.out"
+$DO_PARALLEL $TESTsander -O -i mdin -c restrt0 -o $output -p w4_pgm.top < /dev/null \
+        || { echo "  ${0}:  Program error"; exit 1; }
+
+../dacdif -a 1e-3 $output.save $output
+/bin/rm -f mdin restrt mdcrd mdinfo logfile
+

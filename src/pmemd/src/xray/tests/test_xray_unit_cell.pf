@@ -1,0 +1,196 @@
+module test_xray_unit_cell
+  use xray_pure_utils, only : real_kind
+  use funit
+  
+  implicit none
+  
+  integer, parameter, private :: rk = real_kind
+  real(real_kind), parameter :: tolerance = 1e-10  ! Absolute tolerance
+
+contains
+  
+  @test
+  subroutine test_is_orth()
+    use xray_unit_cell_module, only : unit_cell_t
+    implicit none
+    
+    real(real_kind) :: a, b, c
+    real(real_kind) :: alpha, beta, gamma
+    type(unit_cell_t) :: unit_cell
+    
+    call unit_cell%init(1.0_rk, 1.0_rk, 1.0_rk, 90.0_rk, 90.0_rk, 90.0_rk)
+    
+    @assertTrue(unit_cell%is_orth())
+    
+    call unit_cell%init(1.0_rk, 1.0_rk, 1.0_rk, 90.0_rk, 90.0_rk, 91.0_rk)
+    
+    @assertFalse(unit_cell%is_orth())
+  
+  end subroutine test_is_orth
+  
+  
+  @test
+  subroutine test_s2()
+    use xray_unit_cell_module, only : unit_cell_t
+    use xray_pure_utils, only: cross => cross_product
+    implicit none
+
+    real(real_kind) :: a_, b_, c_
+    real(real_kind) :: alpha, beta, gamma
+    type(unit_cell_t) :: unit_cell
+    real(real_kind) :: d_1, d_n
+    integer, parameter :: n = 10
+    real(real_kind) :: p, q, r
+    real(real_kind) :: v(3)
+    real(real_kind) :: vol
+    integer :: i
+
+    a_ = 27.240
+    b_ = 31.870
+    c_ = 34.230
+
+    alpha = 88.52
+    beta = 108.53
+    gamma = 111.89
+
+    call unit_cell%init(a_, b_, c_, alpha, beta, gamma)
+ 
+    vol = unit_cell%get_volume()
+    @assertEqual([3.6710719838561563e-002_rk,   1.4750172171423052e-002_rk,   1.3935534492355883e-002_rk], unit_cell%get_s([1, 0, 0]), tolerance = tolerance)
+    @assertEqual([0.0000000000000000_rk,      3.3815524039282285e-002_rk,   3.5812223566274717e-003_rk], unit_cell%get_s([0, 1, 0]), tolerance = tolerance)
+    @assertEqual([0.0000000000000000_rk,      0.0000000000000000_rk,      3.0983793917820739e-002_rk], unit_cell%get_s([0, 0, 1]), tolerance = tolerance)
+    @assertEqual(0.60586072241792174E-2_rk, unit_cell%get_s2([1, 1, 1]), tolerance = tolerance)
+    
+  end subroutine
+  
+  @test
+  subroutine test_fractional()
+    use xray_unit_cell_module, only : unit_cell_t
+    implicit none
+    
+    real(real_kind) :: a, b, c
+    real(real_kind) :: alpha, beta, gamma
+    type(unit_cell_t) :: unit_cell
+    real(real_kind) :: d_1, d_n
+    integer, parameter :: n = 10
+    real(real_kind) :: p, q, r
+    real(real_kind) :: v1(3, 1), v2(3, 1)
+    integer :: i
+    
+    a = 10
+    b = 13
+    c = 17
+    
+    alpha = 45
+    beta = 90
+    gamma = 60
+    
+    call unit_cell%init(a, b, c, alpha, beta, gamma)
+    
+    ! Test distance between periodic images
+    do i = 0, n
+      call random_number(p)
+      call random_number(q)
+      v1(:, 1) = [1.0_rk, p, q]
+      v2(:, 1) = [0.0_rk, p, q]
+      d_1 = norm2(unit_cell%to_orth(v1(:, 1)) - unit_cell%to_orth(v2(:, 1)))
+      d_n = norm2(unit_cell%to_orth(v1 ) - unit_cell%to_orth(v2))
+      @assertEqual(d_1, d_n, tolerance = tolerance)
+      @assertEqual(d_1, a, tolerance = tolerance)
+
+
+      v1(:, 1) = [p, 1.0_rk, q]
+      v2(:, 1) = [p, 0.0_rk, q]
+      d_1 = norm2(unit_cell%to_orth(v1(:, 1)) - unit_cell%to_orth(v2(:, 1)))
+      d_n = norm2(unit_cell%to_orth(v1 ) - unit_cell%to_orth(v2))
+      @assertEqual(d_1, d_n, tolerance = tolerance)
+      @assertEqual(d_1, b, tolerance = tolerance)
+      
+      
+      v1(:, 1) = [p, q, 1.0_rk]
+      v2(:, 1) = [p, q, 0.0_rk]
+      d_1 = norm2(unit_cell%to_orth(v1(:, 1)) - unit_cell%to_orth(v2(:, 1)))
+      d_n = norm2(unit_cell%to_orth(v1 ) - unit_cell%to_orth(v2))
+      @assertEqual(d_1, d_n, tolerance = tolerance)
+      @assertEqual(d_1, c, tolerance = tolerance)
+    end do
+
+    ! Test round_trip
+    do i = 0, n
+      call random_number(v1)
+      v2 = unit_cell%to_frac(unit_cell%to_orth(v1))
+      @assertEqual(v1, v2, tolerance = tolerance)
+      v2(:, 1) = unit_cell%to_frac(unit_cell%to_orth(v1(:, 1)))
+      @assertEqual(v1, v2, tolerance = tolerance)
+    end do
+!
+  end subroutine test_fractional
+  
+  
+  @test
+  subroutine test_s()
+    use xray_unit_cell_module, only : unit_cell_t
+    use xray_pure_utils, only: cross => cross_product, to_radians
+    implicit none
+    
+    real(real_kind) :: a_, b_, c_
+    real(real_kind) :: alpha, beta, gamma
+    real(real_kind) :: cos_alpha, cos_beta, cos_gamma
+    type(unit_cell_t) :: unit_cell
+    real(real_kind) :: vol
+    real(real_kind) :: orth(3)
+    real(real_kind) :: frac(3)
+    real(real_kind) :: a1(3), a2(3), a3(3) ! real space cell vectors
+    real(real_kind) :: b1(3), b2(3), b3(3) ! reciprocal space lattice vectors
+    real(real_kind) :: s1(3), s2(3), s3(3) ! s_hkl, for hkl=100,010,001
+    integer :: hkl(3)
+    integer :: i
+    
+    a_ = 27.240
+    b_ = 31.870
+    c_ = 34.230
+    
+    alpha = 88.52
+    beta = 108.53
+    gamma = 111.89
+    
+    cos_alpha = cos(to_radians(alpha))
+    cos_beta = cos(to_radians(beta))
+    cos_gamma = cos(to_radians(gamma))
+
+    call unit_cell%init(a_, b_, c_, alpha, beta, gamma)
+
+    vol = a_ * b_ * c_ &
+        * sqrt(1.0_real_kind + 2.0_real_kind*cos_alpha*cos_beta*cos_gamma &
+            - cos_alpha**2 - cos_beta**2 - cos_gamma**2 )
+    
+    @assertEqual(vol, unit_cell%get_volume(), tolerance=tolerance)
+    
+    orth = [1.0_rk, 3.0_rk, 7.0_rk]
+    frac = unit_cell%to_frac(orth)
+    
+    a1 = unit_cell%to_orth([1.0_rk, 0.0_rk, 0.0_rk])
+    a2 = unit_cell%to_orth([0.0_rk, 1.0_rk, 0.0_rk])
+    a3 = unit_cell%to_orth([0.0_rk, 0.0_rk, 1.0_rk])
+    
+    b1 = cross(a2, a3) / vol
+    b2 = cross(a3, a1) / vol
+    b3 = cross(a1, a2) / vol
+    
+    s1 = unit_cell%get_s(1, 0, 0)
+    s2 = unit_cell%get_s(0, 1, 0)
+    s3 = unit_cell%get_s(0, 0, 1)
+    
+    @assertEqual(s1, b1, tolerance=tolerance)
+    @assertEqual(s2, b2, tolerance=tolerance)
+    @assertEqual(s3, b3, tolerance=tolerance)
+    
+    ! Test dot product equality in real and reciprocal spaces
+    !   (orth, s) == (frac, hkl)
+    hkl = [1, 3, 5]
+    @assertEqual(sum(unit_cell%get_s(hkl) * orth),  sum(frac * hkl), tolerance=tolerance)
+    
+  end subroutine test_s
+
+end module test_xray_unit_cell
+

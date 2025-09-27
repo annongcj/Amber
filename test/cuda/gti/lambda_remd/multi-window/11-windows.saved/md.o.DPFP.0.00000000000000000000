@@ -1,0 +1,1956 @@
+
+          -------------------------------------------------------
+          Amber 20 PMEMD                              2020
+          -------------------------------------------------------
+
+| PMEMD implementation of SANDER, Release 18
+
+|  Executable base on git commit: d605100bcd545f37d92c706ead3c34edee7999ad
+|  Compiled date/time: Tue Aug 31 10:39:30 2021
+|  Compiled on:  sylvaner
+|  Compiled by:  taisung
+
+| Run on 08/31/2021 at 11:31:41
+
+|   Executable path: /home/taisung/amber/installed/lbsr_test_cuda_parallel/bin/pmemd.cuda_DPFP.MPI
+| Working directory: /home/taisung/amber/installed/lbsr_test_cuda_parallel/test/cuda/gti/lambda_remd/multi-window
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|   MDIN: 11-windows/mdin.0.00000000000000000000                                
+|  MDOUT: 11-windows/md.o.0.00000000000000000000                                
+| INPCRD: 11-windows/inpcrd.0.00000000000000000000                              
+|   PARM: prmtop                                                                
+| RESTRT: 11-windows/md.x.0.00000000000000000000                                
+|   REFC: refc                                                                  
+|  MDVEL: mdvel.000                                                             
+|   MDEN: 11-windows/mden.0.00000000000000000000                                
+|  MDCRD: 11-windows/mdcrd.0.00000000000000000000                               
+| MDINFO: 11-windows/mdinfo.0.00000000000000000000                              
+|LOGFILE: logfile.000                                                           
+|  MDFRC: mdfrc.000                                                             
+
+
+ Here is the input file:
+
+NPT MD w/No position restraints and PME (sander)                               
+ &cntrl                                                                        
+  ntx    = 5,                                                                  
+  irest  = 0,                                                                  
+  ntpr   = 2,                                                                  
+  ntwx   = 10000,                                                              
+  ntwe   = 500,                                                                
+  ntwr   = 0,                                                                  
+                                                                               
+  ntxo   = 1,                                                                  
+  ioutfm = 0,                                                                  
+                                                                               
+  cut    = 10.0,                                                               
+  iwrap  = 1,                                                                  
+  nsnb   = 10,                                                                 
+  vlimit = 20,                                                                 
+  ig = 372376,                                                                 
+                                                                               
+  temp0  = 300.0,                                                              
+  tempi  = 300.0,                                                              
+  tautp  = 2.0,                                                                
+                                                                               
+                                                                               
+!gti-specfic                                                                   
+!  gnet_force=1,                                                               
+!NVE                                                                           
+!  ntt    = 0,                                                                 
+!  ntb=1, ntp=0,                                                               
+!NVT                                                                           
+!  ntt    = 3,                                                                 
+!  ntb=1, ntp=0,                                                               
+                                                                               
+!NPT                                                                           
+  ntb=2, ntp=1,                                                                
+!NPT-BR                                                                        
+!  barostat = 1,                                                               
+!NPT-MC                                                                        
+   barostat = 2, mcbarint=10,                                                  
+                                                                               
+                                                                               
+  nstlim = 10,                                                                 
+  numexchg = 10,                                                               
+  gremd_acyc=1,                                                                
+                                                                               
+  t      = 0.0,                                                                
+  nscm   = 1000,                                                               
+  dt     = 0.001,                                                              
+                                                                               
+  ntf    = 1,                                                                  
+  ntc    = 2,                                                                  
+  tol    = 0.000001,                                                           
+                                                                               
+  icfe=1,                                                                      
+  clambda=0.00000000000000000000,                                              
+  timask1=":L0",                                                               
+  timask2=":L1",                                                               
+&end                                                                           
+ &ewald                                                                        
+   skinnb=1, nfft1=32, nfft2=32, nfft3=60, netfrc=0,                           
+ /                                                                             
+
+
+| irandom = 1, using AMBER's internal random number generator (default).
+| INFO:    The nsnb ctrl option does not affect nonbonded list update frequency.
+|          It does affect steepest descent minimization freq if ntmin == 0
+ 
+|--------------------- INFORMATION ----------------------
+| GPU (CUDA) Version of PMEMD in use: NVIDIA GPU IN USE.
+|                    Version 18.0.0
+| 
+|                      03/25/2018
+| 
+| Implementation by:
+|                    Ross C. Walker     (SDSC)
+|                    Scott Le Grand     (nVIDIA)
+| 
+| Version 18 performance extensions by:
+|                    David Cerutti     (Rutgers)
+| 
+| Precision model in use:
+|      [DPFP] - Double Precision Forces, 64-bit Fixed point
+|               Accumulation.
+| 
+|--------------------------------------------------------
+ 
+|----------------- CITATION INFORMATION -----------------
+|
+|    When publishing work that utilized the CUDA version
+|    of AMBER, please cite the following in addition to
+|    the regular AMBER citations:
+|
+|  - Romelia Salomon-Ferrer; Andreas W. Goetz; Duncan
+|    Poole; Scott Le Grand; Ross C. Walker "Routine
+|    microsecond molecular dynamics simulations with
+|    AMBER - Part II: Particle Mesh Ewald", J. Chem.
+|    Theory Comput., 2013, 9 (9), pp3878-3888,
+|    DOI: 10.1021/ct400314y.
+|
+|  - Andreas W. Goetz; Mark J. Williamson; Dong Xu;
+|    Duncan Poole; Scott Le Grand; Ross C. Walker
+|    "Routine microsecond molecular dynamics simulations
+|    with AMBER - Part I: Generalized Born", J. Chem.
+|    Theory Comput., 2012, 8 (5), pp1542-1555.
+|
+|    When publishing work that utilized the CUDA version
+|    of TI, BAR, MBAR or FEP please cite the following 
+|    publications in addition to the regular AMBER 
+|    GPU citations:
+|
+|  - Daniel J. Mermelstein; Charles Lin; Gard Nelson; 
+|    Rachael Kretsch; J. Andrew McCammon; Ross C. Walker
+|    "Fast and Flexible GPU Accelerated Binding 
+|    Free Energy Calculations within the AMBER Molecular
+|    Dynamics Package" J. Comp. Chem., 2018,
+|    DOI: 10.1002/jcc.25187
+|
+|  - Tai-Sung Lee; Yuan Hu; Brad Sherborne; Zhuyan Guo;
+|    Darrin M. York
+|    "Toward Fast and Accurate Binding Affinity Prediction with
+|    pmemdGTI: An Efficient Implementation of GPU-Accelerated
+|    Thermodynamic Integration"
+|    J. Chem. Theory Comput., 2017, 13 (7), 3077
+|
+|
+|--------------------------------------------------------
+ 
+|------------------- GPU DEVICE INFO --------------------
+|
+|                         Task ID:      0
+|            CUDA_VISIBLE_DEVICES: 0,1
+|   CUDA Capable Devices Detected:      2
+|           CUDA Device ID in use:      0
+|                CUDA Device Name: NVIDIA TITAN V
+|     CUDA Device Global Mem Size:  12066 MB
+| CUDA Device Num Multiprocessors:     80
+|           CUDA Device Core Freq:   1.46 GHz
+|
+|--------------------------------------------------------
+ 
+|---------------- GPU PEER TO PEER INFO -----------------
+|
+|   Peer to Peer support: ENABLED
+|
+|   NCCL support: DISABLED
+|
+|--------------------------------------------------------
+ 
+ 
+| Conditional Compilation Defines Used:
+| MPI
+| PUBFFT
+| BINTRAJ
+| CUDA
+| EMIL
+
+| Largest sphere to fit in unit cell has radius =    16.993
+
+| New format PARM file being parsed.
+| Version =    1.000 Date = 05/13/16 Time = 15:49:19
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+
+| Duplicated    0 dihedrals
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+ getting new box info from bottom of inpcrd
+ NATOM  =    4769 NTYPES =      13 NBONH =    4690 MBONA  =      88
+ NTHETH =      92 MTHETA =     132 NPHIH =     172 MPHIA  =     220
+ NHPARM =       0 NPARM  =       0 NNB   =    6859 NRES   =    1551
+ NBONA  =      88 NTHETA =     132 NPHIA =     220 NUMBND =      31
+ NUMANG =      56 NPTRA  =      17 NATYP =      21 NPHB   =       1
+ IFBOX  =       1 NMXRS  =      62 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+| Coordinate Index Table dimensions:     6    6    6
+| Direct force subcell size =     5.6643    6.1042    6.3923
+
+     BOX TYPE: RECTILINEAR
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+L0                                                                              
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Replica exchange
+     numexchg=      10, rem=       3
+
+Nature and format of input:
+     ntx     =       5, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       1, ntpr    =       2, ntrx    =       1, ntwr    =     100
+     iwrap   =       1, ntwx    =   10000, ntwv    =       0, ntwe    =     500
+     ioutfm  =       0, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       2, igb     =       0, nsnb    =      10
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =  10.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =        10, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+
+Pressure regulation:
+     ntp     =       1
+     pres0   =   1.00000, comp    =  44.60000, taup    =   1.00000
+     Monte-Carlo Barostat:
+     mcbarint  =      10
+
+SHAKE:
+     ntc     =       2, jfastw  =       0
+     tol     =   0.00000
+
+Free energy options:
+     icfe    =       1, ifsc    =       0, klambda =       1
+     clambda =  0.0000, scalpha =  0.5000, scbeta  = 12.0000
+     sceeorder =       2
+     dynlmb =  0.0000 logdvdl =       0
+
+| Intermolecular bonds treatment:
+|     no_intermolecular_bonds =       1
+
+| Energy averages sample interval:
+|     ene_avg_sampling =       2
+
+Ewald parameters:
+     verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
+     vdwmeth =       1, eedmeth =       1, netfrc  =       0
+     Box X =   33.986   Box Y =   36.625   Box Z =   38.354
+     Alpha =   90.000   Beta  =   90.000   Gamma =   90.000
+     NFFT1 =   32       NFFT2 =   32       NFFT3 =   60
+     Cutoff=   10.000   Tol   =0.100E-04
+     Ewald Coefficient =  0.27511
+     Interpolation order =    4
+
+| PMEMD ewald parallel performance parameters:
+|     block_fft =    0
+|     fft_blk_y_divisor =    2
+|     excl_recip =    0
+|     excl_master =    0
+|     atm_redist_freq =  320
+     TI Mask 1 :L0; matches     62 atoms
+     TI Mask 2 :L1; matches     62 atoms
+     TI region 1:    4707 atoms
+     TI region 2:    4707 atoms
+     Checking for mismatched coordinates.
+| mismatched mass: atom #1, mass #1, atom #2, mass #2  13   12.0100  75   14.0100
+| mismatched mass: atom #1, mass #1, atom #2, mass #2  28   14.0100  90   12.0100
+| gti_syn_mass has been set to   0
+
+|--------------------------------------------------------------------------------------------
+| Extra TI control variables
+|     gti_add_sc     =   1, gti_ele_gauss  =   0, gti_auto_alpha =   0, gti_scale_beta =   0
+|     gti_ele_exp    =   2, gti_vdw_exp    =   6, gti_ele_sc     =   0, gti_vdw_sc     =   0
+|     gti_cut        =   1, gti_cut_sc     =   0
+|     gti_cut_sc_on    =  0.0000, gti_cut_sc_off    =  0.0000
+|--------------------------------------------------------------------------------------------
+
+| MONTE CARLO BAROSTAT IMPORTANT NOTE:
+|   The Monte-Carlo barostat does not require the virial to adjust the system volume.
+|   Since it is an expensive calculation, it is skipped for efficiency. A side-effect
+|   is that the reported pressure is always 0 because it is not calculated.
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+L0                                                                              
+ begin time read from input coords = 14400.000 ps
+
+ 
+| REMD: Pressure/volume correction to exchange calc active for TREMD/HREMD.
+ Number of triangulated 3-point waters found:     1548
+
+     Sum of charges for TI region  1 =   0.00001601
+     Skip neutralizing charges...
+
+
+     Sum of charges for TI region  2 =  -0.00002200
+     Skip neutralizing charges...
+
+| Dynamic Memory, Types Used:
+| Reals              472876
+| Integers           382561
+
+| Nonbonded Pairs Initial Allocation:     1442503
+
+| GPU memory information (estimate):
+| KB of GPU memory in use:     36270
+| KB of CPU memory in use:     26064
+
+| Running AMBER/MPI version on    1 MPI task
+
+ 
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =   300.28  PRESS =     0.0
+ Etot   =    -11986.4080  EKtot   =      2819.7836  EPtot      =    -14806.1916
+ BOND   =        10.8662  ANGLE   =        60.1548  DIHED      =        35.5440
+ 1-4 NB =        15.1806  1-4 EEL =       100.0157  VDWAALS    =      2118.3644
+ EELEC  =    -17146.3173  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        -8.6869
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              0
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =   300.28  PRESS =     0.0
+ Etot   =    -11986.4080  EKtot   =      2819.7836  EPtot      =    -14806.1916
+ BOND   =        10.8662  ANGLE   =        60.1548  DIHED      =        35.5440
+ 1-4 NB =        15.1806  1-4 EEL =       100.0157  VDWAALS    =      2118.3644
+ EELEC  =    -17146.3173  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        -8.6869
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              0
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =   297.93  PRESS =     0.0
+ Etot   =    -11986.7101  EKtot   =      2797.6921  EPtot      =    -14784.4023
+ BOND   =        12.4079  ANGLE   =        59.3201  DIHED      =        35.7087
+ 1-4 NB =        15.0813  1-4 EEL =       100.3352  VDWAALS    =      2121.1091
+ EELEC  =    -17128.3645  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        -9.0170
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =   297.94  PRESS =     0.0
+ Etot   =    -11986.5708  EKtot   =      2797.8314  EPtot      =    -14784.4023
+ BOND   =        12.4079  ANGLE   =        59.3201  DIHED      =        35.7087
+ 1-4 NB =        15.0813  1-4 EEL =       100.3352  VDWAALS    =      2121.1091
+ EELEC  =    -17128.3645  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        -9.0170
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =   294.11  PRESS =     0.0
+ Etot   =    -11986.6240  EKtot   =      2761.8359  EPtot      =    -14748.4599
+ BOND   =        15.2078  ANGLE   =        57.8001  DIHED      =        35.9725
+ 1-4 NB =        15.0262  1-4 EEL =       100.7975  VDWAALS    =      2125.4131
+ EELEC  =    -17098.6770  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        -7.2182
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =   294.11  PRESS =     0.0
+ Etot   =    -11986.6123  EKtot   =      2761.8476  EPtot      =    -14748.4599
+ BOND   =        15.2078  ANGLE   =        57.8001  DIHED      =        35.9725
+ 1-4 NB =        15.0262  1-4 EEL =       100.7975  VDWAALS    =      2125.4131
+ EELEC  =    -17098.6770  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        -7.2182
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =        6   TIME(PS) =       0.006  TEMP(K) =   292.07  PRESS =     0.0
+ Etot   =    -11986.7590  EKtot   =      2742.6746  EPtot      =    -14729.4336
+ BOND   =        16.0597  ANGLE   =        56.5355  DIHED      =        36.2284
+ 1-4 NB =        15.1754  1-4 EEL =       100.9595  VDWAALS    =      2128.8477
+ EELEC  =    -17083.2398  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        -3.2854
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        6   TIME(PS) =       0.006  TEMP(K) =   292.06  PRESS =     0.0
+ Etot   =    -11986.8437  EKtot   =      2742.5899  EPtot      =    -14729.4336
+ BOND   =        16.0597  ANGLE   =        56.5355  DIHED      =        36.2284
+ 1-4 NB =        15.1754  1-4 EEL =       100.9595  VDWAALS    =      2128.8477
+ EELEC  =    -17083.2398  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        -3.2854
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =        8   TIME(PS) =       0.008  TEMP(K) =   291.82  PRESS =     0.0
+ Etot   =    -11986.8039  EKtot   =      2740.2877  EPtot      =    -14727.0916
+ BOND   =        15.3480  ANGLE   =        56.8800  DIHED      =        36.5980
+ 1-4 NB =        15.4929  1-4 EEL =       100.8391  VDWAALS    =      2132.7981
+ EELEC  =    -17085.0477  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         0.7535
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        8   TIME(PS) =       0.008  TEMP(K) =   291.81  PRESS =     0.0
+ Etot   =    -11986.8769  EKtot   =      2740.2147  EPtot      =    -14727.0916
+ BOND   =        15.3480  ANGLE   =        56.8800  DIHED      =        36.5980
+ 1-4 NB =        15.4929  1-4 EEL =       100.8391  VDWAALS    =      2132.7981
+ EELEC  =    -17085.0477  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         0.7535
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =   292.94  PRESS =     0.0
+ Etot   =    -11986.6897  EKtot   =      2750.8024  EPtot      =    -14737.4921
+ BOND   =        14.7325  ANGLE   =        59.0971  DIHED      =        36.9738
+ 1-4 NB =        15.8866  1-4 EEL =       100.5364  VDWAALS    =      2137.8452
+ EELEC  =    -17102.5636  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         2.8976
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =   292.94  PRESS =     0.0
+ Etot   =    -11986.6825  EKtot   =      2750.8096  EPtot      =    -14737.4921
+ BOND   =        14.7325  ANGLE   =        59.0971  DIHED      =        36.9738
+ 1-4 NB =        15.8866  1-4 EEL =       100.5364  VDWAALS    =      2137.8452
+ EELEC  =    -17102.5636  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         2.8976
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              1
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       12   TIME(PS) =       0.012  TEMP(K) =   294.99  PRESS =     0.0
+ Etot   =    -11988.0047  EKtot   =      2770.0918  EPtot      =    -14758.0965
+ BOND   =        14.4861  ANGLE   =        60.1214  DIHED      =        37.2210
+ 1-4 NB =        16.2521  1-4 EEL =       100.1643  VDWAALS    =      2144.1237
+ EELEC  =    -17130.4651  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         4.2453
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       12   TIME(PS) =       0.012  TEMP(K) =   295.00  PRESS =     0.0
+ Etot   =    -11987.9293  EKtot   =      2770.1673  EPtot      =    -14758.0965
+ BOND   =        14.4861  ANGLE   =        60.1214  DIHED      =        37.2210
+ 1-4 NB =        16.2521  1-4 EEL =       100.1643  VDWAALS    =      2144.1237
+ EELEC  =    -17130.4651  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         4.2453
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       14   TIME(PS) =       0.014  TEMP(K) =   297.72  PRESS =     0.0
+ Etot   =    -11988.1892  EKtot   =      2795.7272  EPtot      =    -14783.9164
+ BOND   =        14.0611  ANGLE   =        58.5482  DIHED      =        37.6095
+ 1-4 NB =        16.5473  1-4 EEL =        99.9585  VDWAALS    =      2150.7629
+ EELEC  =    -17161.4040  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         6.6325
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       14   TIME(PS) =       0.014  TEMP(K) =   297.72  PRESS =     0.0
+ Etot   =    -11988.1400  EKtot   =      2795.7764  EPtot      =    -14783.9164
+ BOND   =        14.0611  ANGLE   =        58.5482  DIHED      =        37.6095
+ 1-4 NB =        16.5473  1-4 EEL =        99.9585  VDWAALS    =      2150.7629
+ EELEC  =    -17161.4040  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         6.6325
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       16   TIME(PS) =       0.016  TEMP(K) =   300.12  PRESS =     0.0
+ Etot   =    -11988.3746  EKtot   =      2818.2962  EPtot      =    -14806.6708
+ BOND   =        12.9400  ANGLE   =        55.1070  DIHED      =        38.4330
+ 1-4 NB =        16.7776  1-4 EEL =       100.0258  VDWAALS    =      2158.0884
+ EELEC  =    -17188.0426  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         8.8288
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       16   TIME(PS) =       0.016  TEMP(K) =   300.12  PRESS =     0.0
+ Etot   =    -11988.3566  EKtot   =      2818.3142  EPtot      =    -14806.6708
+ BOND   =        12.9400  ANGLE   =        55.1070  DIHED      =        38.4330
+ 1-4 NB =        16.7776  1-4 EEL =       100.0258  VDWAALS    =      2158.0884
+ EELEC  =    -17188.0426  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =         8.8288
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       18   TIME(PS) =       0.018  TEMP(K) =   301.21  PRESS =     0.0
+ Etot   =    -11988.5104  EKtot   =      2828.4817  EPtot      =    -14816.9922
+ BOND   =        12.5492  ANGLE   =        53.5748  DIHED      =        39.6223
+ 1-4 NB =        16.9195  1-4 EEL =       100.4088  VDWAALS    =      2166.0039
+ EELEC  =    -17206.0706  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        10.6603
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       18   TIME(PS) =       0.018  TEMP(K) =   301.21  PRESS =     0.0
+ Etot   =    -11988.4639  EKtot   =      2828.5283  EPtot      =    -14816.9922
+ BOND   =        12.5492  ANGLE   =        53.5748  DIHED      =        39.6223
+ 1-4 NB =        16.9195  1-4 EEL =       100.4088  VDWAALS    =      2166.0039
+ EELEC  =    -17206.0706  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        10.6603
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       20   TIME(PS) =       0.020  TEMP(K) =   300.78  PRESS =     0.0
+ Etot   =    -11988.3298  EKtot   =      2824.4831  EPtot      =    -14812.8129
+ BOND   =        13.7676  ANGLE   =        55.7765  DIHED      =        40.5018
+ 1-4 NB =        16.9223  1-4 EEL =       101.0035  VDWAALS    =      2174.1918
+ EELEC  =    -17214.9764  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        12.7791
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       20   TIME(PS) =       0.020  TEMP(K) =   300.80  PRESS =     0.0
+ Etot   =    -11988.1798  EKtot   =      2824.6331  EPtot      =    -14812.8129
+ BOND   =        13.7676  ANGLE   =        55.7765  DIHED      =        40.5018
+ 1-4 NB =        16.9223  1-4 EEL =       101.0035  VDWAALS    =      2174.1918
+ EELEC  =    -17214.9764  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        12.7791
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              2
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       22   TIME(PS) =       0.022  TEMP(K) =   299.76  PRESS =     0.0
+ Etot   =    -11988.1393  EKtot   =      2814.9286  EPtot      =    -14803.0679
+ BOND   =        15.4728  ANGLE   =        58.8215  DIHED      =        40.4312
+ 1-4 NB =        16.7631  1-4 EEL =       101.5754  VDWAALS    =      2182.2101
+ EELEC  =    -17218.3421  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        13.7512
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       22   TIME(PS) =       0.022  TEMP(K) =   299.80  PRESS =     0.0
+ Etot   =    -11987.8427  EKtot   =      2815.2252  EPtot      =    -14803.0679
+ BOND   =        15.4728  ANGLE   =        58.8215  DIHED      =        40.4312
+ 1-4 NB =        16.7631  1-4 EEL =       101.5754  VDWAALS    =      2182.2101
+ EELEC  =    -17218.3421  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        13.7512
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       24   TIME(PS) =       0.024  TEMP(K) =   299.32  PRESS =     0.0
+ Etot   =    -11988.1486  EKtot   =      2810.7954  EPtot      =    -14798.9440
+ BOND   =        16.1821  ANGLE   =        58.5322  DIHED      =        39.5089
+ 1-4 NB =        16.4900  1-4 EEL =       101.8559  VDWAALS    =      2189.6894
+ EELEC  =    -17221.2025  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.3424
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       24   TIME(PS) =       0.024  TEMP(K) =   299.37  PRESS =     0.0
+ Etot   =    -11987.6943  EKtot   =      2811.2496  EPtot      =    -14798.9440
+ BOND   =        16.1821  ANGLE   =        58.5322  DIHED      =        39.5089
+ 1-4 NB =        16.4900  1-4 EEL =       101.8559  VDWAALS    =      2189.6894
+ EELEC  =    -17221.2025  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.3424
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       26   TIME(PS) =       0.026  TEMP(K) =   299.77  PRESS =     0.0
+ Etot   =    -11988.1870  EKtot   =      2815.0126  EPtot      =    -14803.1996
+ BOND   =        16.1459  ANGLE   =        55.0890  DIHED      =        38.3544
+ 1-4 NB =        16.2062  1-4 EEL =       101.6698  VDWAALS    =      2196.5718
+ EELEC  =    -17227.2366  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        16.7360
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       26   TIME(PS) =       0.026  TEMP(K) =   299.84  PRESS =     0.0
+ Etot   =    -11987.6004  EKtot   =      2815.5992  EPtot      =    -14803.1996
+ BOND   =        16.1459  ANGLE   =        55.0890  DIHED      =        38.3544
+ 1-4 NB =        16.2062  1-4 EEL =       101.6698  VDWAALS    =      2196.5718
+ EELEC  =    -17227.2366  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        16.7360
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       28   TIME(PS) =       0.028  TEMP(K) =   300.46  PRESS =     0.0
+ Etot   =    -11988.3583  EKtot   =      2821.5026  EPtot      =    -14809.8609
+ BOND   =        16.6693  ANGLE   =        53.2822  DIHED      =        37.5382
+ 1-4 NB =        16.0201  1-4 EEL =       101.0384  VDWAALS    =      2203.0044
+ EELEC  =    -17237.4135  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        17.6061
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       28   TIME(PS) =       0.028  TEMP(K) =   300.53  PRESS =     0.0
+ Etot   =    -11987.7228  EKtot   =      2822.1381  EPtot      =    -14809.8609
+ BOND   =        16.6693  ANGLE   =        53.2822  DIHED      =        37.5382
+ 1-4 NB =        16.0201  1-4 EEL =       101.0384  VDWAALS    =      2203.0044
+ EELEC  =    -17237.4135  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        17.6061
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       30   TIME(PS) =       0.030  TEMP(K) =   300.68  PRESS =     0.0
+ Etot   =    -11988.3622  EKtot   =      2823.5630  EPtot      =    -14811.9252
+ BOND   =        17.7717  ANGLE   =        56.6632  DIHED      =        37.3728
+ 1-4 NB =        15.9968  1-4 EEL =       100.2022  VDWAALS    =      2209.0844
+ EELEC  =    -17249.0162  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        18.1130
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       30   TIME(PS) =       0.030  TEMP(K) =   300.74  PRESS =     0.0
+ Etot   =    -11987.7951  EKtot   =      2824.1301  EPtot      =    -14811.9252
+ BOND   =        17.7717  ANGLE   =        56.6632  DIHED      =        37.3728
+ 1-4 NB =        15.9968  1-4 EEL =       100.2022  VDWAALS    =      2209.0844
+ EELEC  =    -17249.0162  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        18.1130
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              3
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       32   TIME(PS) =       0.032  TEMP(K) =   300.18  PRESS =     0.0
+ Etot   =    -11992.3193  EKtot   =      2818.7917  EPtot      =    -14811.1110
+ BOND   =        17.4482  ANGLE   =        62.9592  DIHED      =        37.2098
+ 1-4 NB =        15.9489  1-4 EEL =        99.5449  VDWAALS    =      2214.6872
+ EELEC  =    -17258.9092  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.1240
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       32   TIME(PS) =       0.032  TEMP(K) =   300.22  PRESS =     0.0
+ Etot   =    -11991.9459  EKtot   =      2819.1652  EPtot      =    -14811.1110
+ BOND   =        17.4482  ANGLE   =        62.9592  DIHED      =        37.2098
+ 1-4 NB =        15.9489  1-4 EEL =        99.5449  VDWAALS    =      2214.6872
+ EELEC  =    -17258.9092  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.1240
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       34   TIME(PS) =       0.034  TEMP(K) =   299.76  PRESS =     0.0
+ Etot   =    -11992.2972  EKtot   =      2814.8898  EPtot      =    -14807.1870
+ BOND   =        16.0562  ANGLE   =        66.4243  DIHED      =        36.9072
+ 1-4 NB =        16.1930  1-4 EEL =        99.2715  VDWAALS    =      2220.3319
+ EELEC  =    -17262.3711  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.5765
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       34   TIME(PS) =       0.034  TEMP(K) =   299.79  PRESS =     0.0
+ Etot   =    -11992.0474  EKtot   =      2815.1396  EPtot      =    -14807.1870
+ BOND   =        16.0562  ANGLE   =        66.4243  DIHED      =        36.9072
+ 1-4 NB =        16.1930  1-4 EEL =        99.2715  VDWAALS    =      2220.3319
+ EELEC  =    -17262.3711  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.5765
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       36   TIME(PS) =       0.036  TEMP(K) =   299.25  PRESS =     0.0
+ Etot   =    -11992.1977  EKtot   =      2810.1025  EPtot      =    -14802.3002
+ BOND   =        14.5507  ANGLE   =        64.5318  DIHED      =        35.7363
+ 1-4 NB =        16.4778  1-4 EEL =        99.5113  VDWAALS    =      2225.9785
+ EELEC  =    -17259.0867  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.8381
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       36   TIME(PS) =       0.036  TEMP(K) =   299.27  PRESS =     0.0
+ Etot   =    -11992.0454  EKtot   =      2810.2549  EPtot      =    -14802.3002
+ BOND   =        14.5507  ANGLE   =        64.5318  DIHED      =        35.7363
+ 1-4 NB =        16.4778  1-4 EEL =        99.5113  VDWAALS    =      2225.9785
+ EELEC  =    -17259.0867  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.8381
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       38   TIME(PS) =       0.038  TEMP(K) =   298.36  PRESS =     0.0
+ Etot   =    -11992.2690  EKtot   =      2801.7089  EPtot      =    -14793.9779
+ BOND   =        14.8381  ANGLE   =        60.0078  DIHED      =        33.6495
+ 1-4 NB =        16.7424  1-4 EEL =       100.1405  VDWAALS    =      2231.6529
+ EELEC  =    -17251.0091  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.9354
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       38   TIME(PS) =       0.038  TEMP(K) =   298.36  PRESS =     0.0
+ Etot   =    -11992.2112  EKtot   =      2801.7667  EPtot      =    -14793.9779
+ BOND   =        14.8381  ANGLE   =        60.0078  DIHED      =        33.6495
+ 1-4 NB =        16.7424  1-4 EEL =       100.1405  VDWAALS    =      2231.6529
+ EELEC  =    -17251.0091  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.9354
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       40   TIME(PS) =       0.040  TEMP(K) =   297.04  PRESS =     0.0
+ Etot   =    -11992.1310  EKtot   =      2789.3512  EPtot      =    -14781.4822
+ BOND   =        16.6655  ANGLE   =        56.9704  DIHED      =        31.4564
+ 1-4 NB =        16.8958  1-4 EEL =       100.9450  VDWAALS    =      2237.3632
+ EELEC  =    -17241.7784  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.7151
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       40   TIME(PS) =       0.040  TEMP(K) =   297.03  PRESS =     0.0
+ Etot   =    -11992.2145  EKtot   =      2789.2676  EPtot      =    -14781.4822
+ BOND   =        16.6655  ANGLE   =        56.9704  DIHED      =        31.4564
+ 1-4 NB =        16.8958  1-4 EEL =       100.9450  VDWAALS    =      2237.3632
+ EELEC  =    -17241.7784  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.7151
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              4
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       42   TIME(PS) =       0.042  TEMP(K) =   295.85  PRESS =     0.0
+ Etot   =    -11992.0405  EKtot   =      2778.1658  EPtot      =    -14770.2063
+ BOND   =        17.9522  ANGLE   =        56.6032  DIHED      =        30.3358
+ 1-4 NB =        16.8492  1-4 EEL =       101.7014  VDWAALS    =      2243.1557
+ EELEC  =    -17236.8038  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.6763
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       42   TIME(PS) =       0.042  TEMP(K) =   295.82  PRESS =     0.0
+ Etot   =    -11992.3195  EKtot   =      2777.8867  EPtot      =    -14770.2063
+ BOND   =        17.9522  ANGLE   =        56.6032  DIHED      =        30.3358
+ 1-4 NB =        16.8492  1-4 EEL =       101.7014  VDWAALS    =      2243.1557
+ EELEC  =    -17236.8038  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.6763
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       44   TIME(PS) =       0.044  TEMP(K) =   295.52  PRESS =     0.0
+ Etot   =    -11992.1205  EKtot   =      2775.0979  EPtot      =    -14767.2184
+ BOND   =        17.4040  ANGLE   =        57.1459  DIHED      =        31.0089
+ 1-4 NB =        16.5579  1-4 EEL =       102.2000  VDWAALS    =      2248.8953
+ EELEC  =    -17240.4304  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.2765
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       44   TIME(PS) =       0.044  TEMP(K) =   295.47  PRESS =     0.0
+ Etot   =    -11992.5813  EKtot   =      2774.6371  EPtot      =    -14767.2184
+ BOND   =        17.4040  ANGLE   =        57.1459  DIHED      =        31.0089
+ 1-4 NB =        16.5579  1-4 EEL =       102.2000  VDWAALS    =      2248.8953
+ EELEC  =    -17240.4304  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        15.2765
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       46   TIME(PS) =       0.046  TEMP(K) =   296.39  PRESS =     0.0
+ Etot   =    -11992.1826  EKtot   =      2783.2016  EPtot      =    -14775.3843
+ BOND   =        15.9580  ANGLE   =        56.7943  DIHED      =        33.2620
+ 1-4 NB =        16.0285  1-4 EEL =       102.2960  VDWAALS    =      2254.3090
+ EELEC  =    -17254.0321  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        14.8146
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       46   TIME(PS) =       0.046  TEMP(K) =   296.33  PRESS =     0.0
+ Etot   =    -11992.7304  EKtot   =      2782.6539  EPtot      =    -14775.3843
+ BOND   =        15.9580  ANGLE   =        56.7943  DIHED      =        33.2620
+ 1-4 NB =        16.0285  1-4 EEL =       102.2960  VDWAALS    =      2254.3090
+ EELEC  =    -17254.0321  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        14.8146
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       48   TIME(PS) =       0.048  TEMP(K) =   298.17  PRESS =     0.0
+ Etot   =    -11992.4131  EKtot   =      2799.9683  EPtot      =    -14792.3814
+ BOND   =        15.3154  ANGLE   =        55.6556  DIHED      =        36.2245
+ 1-4 NB =        15.3380  1-4 EEL =       102.0061  VDWAALS    =      2259.1860
+ EELEC  =    -17276.1073  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        14.5743
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       48   TIME(PS) =       0.048  TEMP(K) =   298.11  PRESS =     0.0
+ Etot   =    -11992.9456  EKtot   =      2799.4359  EPtot      =    -14792.3814
+ BOND   =        15.3154  ANGLE   =        55.6556  DIHED      =        36.2245
+ 1-4 NB =        15.3380  1-4 EEL =       102.0061  VDWAALS    =      2259.1860
+ EELEC  =    -17276.1073  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47740.2648
+                                                    Density    =         0.9897
+ DV/DL  =        14.5743
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       50   TIME(PS) =       0.050  TEMP(K) =   300.30  PRESS =     0.0
+ Etot   =    -11991.1431  EKtot   =      2819.9239  EPtot      =    -14811.0670
+ BOND   =        15.7234  ANGLE   =        55.3385  DIHED      =        38.8439
+ 1-4 NB =        14.6457  1-4 EEL =       101.5359  VDWAALS    =      2223.7363
+ EELEC  =    -17260.8907  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        14.8619
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       50   TIME(PS) =       0.050  TEMP(K) =   300.25  PRESS =     0.0
+ Etot   =    -11991.6232  EKtot   =      2819.4438  EPtot      =    -14811.0670
+ BOND   =        15.7234  ANGLE   =        55.3385  DIHED      =        38.8439
+ 1-4 NB =        14.6457  1-4 EEL =       101.5359  VDWAALS    =      2223.7363
+ EELEC  =    -17260.8907  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        14.8619
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              5
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       52   TIME(PS) =       0.052  TEMP(K) =   302.41  PRESS =     0.0
+ Etot   =    -11987.1900  EKtot   =      2839.7498  EPtot      =    -14826.9398
+ BOND   =        16.9146  ANGLE   =        56.9674  DIHED      =        40.7010
+ 1-4 NB =        14.2270  1-4 EEL =       100.6885  VDWAALS    =      2226.8748
+ EELEC  =    -17283.3131  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        14.0075
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       52   TIME(PS) =       0.052  TEMP(K) =   302.36  PRESS =     0.0
+ Etot   =    -11987.5963  EKtot   =      2839.3435  EPtot      =    -14826.9398
+ BOND   =        16.9146  ANGLE   =        56.9674  DIHED      =        40.7010
+ 1-4 NB =        14.2270  1-4 EEL =       100.6885  VDWAALS    =      2226.8748
+ EELEC  =    -17283.3131  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        14.0075
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       54   TIME(PS) =       0.054  TEMP(K) =   303.59  PRESS =     0.0
+ Etot   =    -11987.2179  EKtot   =      2850.8679  EPtot      =    -14838.0859
+ BOND   =        16.4444  ANGLE   =        61.2916  DIHED      =        40.5387
+ 1-4 NB =        14.0377  1-4 EEL =       100.4782  VDWAALS    =      2228.6749
+ EELEC  =    -17299.5513  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        14.0720
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       54   TIME(PS) =       0.054  TEMP(K) =   303.55  PRESS =     0.0
+ Etot   =    -11987.5995  EKtot   =      2850.4864  EPtot      =    -14838.0859
+ BOND   =        16.4444  ANGLE   =        61.2916  DIHED      =        40.5387
+ 1-4 NB =        14.0377  1-4 EEL =       100.4782  VDWAALS    =      2228.6749
+ EELEC  =    -17299.5513  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        14.0720
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       56   TIME(PS) =       0.056  TEMP(K) =   304.00  PRESS =     0.0
+ Etot   =    -11987.1982  EKtot   =      2854.6934  EPtot      =    -14841.8917
+ BOND   =        15.4411  ANGLE   =        65.3818  DIHED      =        39.0467
+ 1-4 NB =        14.1465  1-4 EEL =       100.4550  VDWAALS    =      2229.4871
+ EELEC  =    -17305.8500  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        14.6471
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       56   TIME(PS) =       0.056  TEMP(K) =   303.97  PRESS =     0.0
+ Etot   =    -11987.4861  EKtot   =      2854.4055  EPtot      =    -14841.8917
+ BOND   =        15.4411  ANGLE   =        65.3818  DIHED      =        39.0467
+ 1-4 NB =        14.1465  1-4 EEL =       100.4550  VDWAALS    =      2229.4871
+ EELEC  =    -17305.8500  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        14.6471
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       58   TIME(PS) =       0.058  TEMP(K) =   303.70  PRESS =     0.0
+ Etot   =    -11987.0064  EKtot   =      2851.8534  EPtot      =    -14838.8599
+ BOND   =        15.2176  ANGLE   =        66.7964  DIHED      =        37.2197
+ 1-4 NB =        14.4445  1-4 EEL =       100.4761  VDWAALS    =      2229.2205
+ EELEC  =    -17302.2348  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        15.7648
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       58   TIME(PS) =       0.058  TEMP(K) =   303.68  PRESS =     0.0
+ Etot   =    -11987.1873  EKtot   =      2851.6726  EPtot      =    -14838.8599
+ BOND   =        15.2176  ANGLE   =        66.7964  DIHED      =        37.2197
+ 1-4 NB =        14.4445  1-4 EEL =       100.4761  VDWAALS    =      2229.2205
+ EELEC  =    -17302.2348  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        15.7648
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       60   TIME(PS) =       0.060  TEMP(K) =   302.90  PRESS =     0.0
+ Etot   =    -11986.9449  EKtot   =      2844.4086  EPtot      =    -14831.3535
+ BOND   =        15.9603  ANGLE   =        64.7737  DIHED      =        36.0745
+ 1-4 NB =        14.7897  1-4 EEL =       100.4502  VDWAALS    =      2227.9515
+ EELEC  =    -17291.3535  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        17.1841
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       60   TIME(PS) =       0.060  TEMP(K) =   302.89  PRESS =     0.0
+ Etot   =    -11987.0641  EKtot   =      2844.2894  EPtot      =    -14831.3535
+ BOND   =        15.9603  ANGLE   =        64.7737  DIHED      =        36.0745
+ 1-4 NB =        14.7897  1-4 EEL =       100.4502  VDWAALS    =      2227.9515
+ EELEC  =    -17291.3535  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        17.1841
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              6
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       62   TIME(PS) =       0.062  TEMP(K) =   301.88  PRESS =     0.0
+ Etot   =    -11986.8372  EKtot   =      2834.8136  EPtot      =    -14821.6507
+ BOND   =        16.2875  ANGLE   =        60.8299  DIHED      =        36.0531
+ 1-4 NB =        15.0938  1-4 EEL =       100.3425  VDWAALS    =      2225.6432
+ EELEC  =    -17275.9007  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        18.5371
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       62   TIME(PS) =       0.062  TEMP(K) =   301.87  PRESS =     0.0
+ Etot   =    -11986.9091  EKtot   =      2834.7416  EPtot      =    -14821.6507
+ BOND   =        16.2875  ANGLE   =        60.8299  DIHED      =        36.0531
+ 1-4 NB =        15.0938  1-4 EEL =       100.3425  VDWAALS    =      2225.6432
+ EELEC  =    -17275.9007  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        18.5371
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       64   TIME(PS) =       0.064  TEMP(K) =   300.80  PRESS =     0.0
+ Etot   =    -11986.7870  EKtot   =      2824.6147  EPtot      =    -14811.4017
+ BOND   =        15.1203  ANGLE   =        57.5124  DIHED      =        36.9040
+ 1-4 NB =        15.3457  1-4 EEL =       100.1030  VDWAALS    =      2222.3632
+ EELEC  =    -17258.7504  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        19.2144
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       64   TIME(PS) =       0.064  TEMP(K) =   300.80  PRESS =     0.0
+ Etot   =    -11986.7434  EKtot   =      2824.6583  EPtot      =    -14811.4017
+ BOND   =        15.1203  ANGLE   =        57.5124  DIHED      =        36.9040
+ 1-4 NB =        15.3457  1-4 EEL =       100.1030  VDWAALS    =      2222.3632
+ EELEC  =    -17258.7504  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        19.2144
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       66   TIME(PS) =       0.066  TEMP(K) =   299.69  PRESS =     0.0
+ Etot   =    -11986.7874  EKtot   =      2814.2474  EPtot      =    -14801.0348
+ BOND   =        13.4211  ANGLE   =        56.4192  DIHED      =        37.9625
+ 1-4 NB =        15.5563  1-4 EEL =        99.6631  VDWAALS    =      2218.2577
+ EELEC  =    -17242.3148  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        19.0575
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       66   TIME(PS) =       0.066  TEMP(K) =   299.72  PRESS =     0.0
+ Etot   =    -11986.5484  EKtot   =      2814.4863  EPtot      =    -14801.0348
+ BOND   =        13.4211  ANGLE   =        56.4192  DIHED      =        37.9625
+ 1-4 NB =        15.5563  1-4 EEL =        99.6631  VDWAALS    =      2218.2577
+ EELEC  =    -17242.3148  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        19.0575
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       68   TIME(PS) =       0.068  TEMP(K) =   298.68  PRESS =     0.0
+ Etot   =    -11986.7557  EKtot   =      2804.7405  EPtot      =    -14791.4962
+ BOND   =        13.3877  ANGLE   =        56.8687  DIHED      =        38.5110
+ 1-4 NB =        15.7097  1-4 EEL =        99.0336  VDWAALS    =      2213.6758
+ EELEC  =    -17228.6828  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        18.3296
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       68   TIME(PS) =       0.068  TEMP(K) =   298.72  PRESS =     0.0
+ Etot   =    -11986.3468  EKtot   =      2805.1494  EPtot      =    -14791.4962
+ BOND   =        13.3877  ANGLE   =        56.8687  DIHED      =        38.5110
+ 1-4 NB =        15.7097  1-4 EEL =        99.0336  VDWAALS    =      2213.6758
+ EELEC  =    -17228.6828  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47835.7586
+                                                    Density    =         0.9877
+ DV/DL  =        18.3296
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       70   TIME(PS) =       0.070  TEMP(K) =   298.05  PRESS =     0.0
+ Etot   =    -11984.5054  EKtot   =      2798.8033  EPtot      =    -14783.3087
+ BOND   =        15.8832  ANGLE   =        56.7376  DIHED      =        38.1636
+ 1-4 NB =        15.7875  1-4 EEL =        98.3801  VDWAALS    =      2163.4514
+ EELEC  =    -17171.7120  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        17.5881
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       70   TIME(PS) =       0.070  TEMP(K) =   298.09  PRESS =     0.0
+ Etot   =    -11984.0726  EKtot   =      2799.2361  EPtot      =    -14783.3087
+ BOND   =        15.8832  ANGLE   =        56.7376  DIHED      =        38.1636
+ 1-4 NB =        15.7875  1-4 EEL =        98.3801  VDWAALS    =      2163.4514
+ EELEC  =    -17171.7120  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        17.5881
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              7
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       72   TIME(PS) =       0.072  TEMP(K) =   297.94  PRESS =     0.0
+ Etot   =    -11984.2459  EKtot   =      2797.7853  EPtot      =    -14782.0312
+ BOND   =        19.3051  ANGLE   =        56.3681  DIHED      =        36.6107
+ 1-4 NB =        15.8596  1-4 EEL =        97.5619  VDWAALS    =      2160.0173
+ EELEC  =    -17167.7539  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        15.7521
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       72   TIME(PS) =       0.072  TEMP(K) =   297.97  PRESS =     0.0
+ Etot   =    -11983.9787  EKtot   =      2798.0525  EPtot      =    -14782.0312
+ BOND   =        19.3051  ANGLE   =        56.3681  DIHED      =        36.6107
+ 1-4 NB =        15.8596  1-4 EEL =        97.5619  VDWAALS    =      2160.0173
+ EELEC  =    -17167.7539  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        15.7521
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       74   TIME(PS) =       0.074  TEMP(K) =   298.40  PRESS =     0.0
+ Etot   =    -11984.2957  EKtot   =      2802.1591  EPtot      =    -14786.4548
+ BOND   =        20.2011  ANGLE   =        56.3455  DIHED      =        35.8195
+ 1-4 NB =        15.8754  1-4 EEL =        97.4629  VDWAALS    =      2157.5154
+ EELEC  =    -17169.6746  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        16.7268
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       74   TIME(PS) =       0.074  TEMP(K) =   298.41  PRESS =     0.0
+ Etot   =    -11984.2436  EKtot   =      2802.2112  EPtot      =    -14786.4548
+ BOND   =        20.2011  ANGLE   =        56.3455  DIHED      =        35.8195
+ 1-4 NB =        15.8754  1-4 EEL =        97.4629  VDWAALS    =      2157.5154
+ EELEC  =    -17169.6746  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        16.7268
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       76   TIME(PS) =       0.076  TEMP(K) =   299.03  PRESS =     0.0
+ Etot   =    -11984.2561  EKtot   =      2808.0206  EPtot      =    -14792.2768
+ BOND   =        18.4335  ANGLE   =        59.4203  DIHED      =        35.8786
+ 1-4 NB =        15.9343  1-4 EEL =        97.7121  VDWAALS    =      2156.5976
+ EELEC  =    -17176.2532  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        17.8654
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       76   TIME(PS) =       0.076  TEMP(K) =   299.02  PRESS =     0.0
+ Etot   =    -11984.3512  EKtot   =      2807.9255  EPtot      =    -14792.2768
+ BOND   =        18.4335  ANGLE   =        59.4203  DIHED      =        35.8786
+ 1-4 NB =        15.9343  1-4 EEL =        97.7121  VDWAALS    =      2156.5976
+ EELEC  =    -17176.2532  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        17.8654
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       78   TIME(PS) =       0.078  TEMP(K) =   299.71  PRESS =     0.0
+ Etot   =    -11984.3062  EKtot   =      2814.4191  EPtot      =    -14798.7253
+ BOND   =        15.5627  ANGLE   =        63.9926  DIHED      =        36.7026
+ 1-4 NB =        16.0329  1-4 EEL =        98.0857  VDWAALS    =      2157.3768
+ EELEC  =    -17186.4787  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        18.7170
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       78   TIME(PS) =       0.078  TEMP(K) =   299.69  PRESS =     0.0
+ Etot   =    -11984.4650  EKtot   =      2814.2603  EPtot      =    -14798.7253
+ BOND   =        15.5627  ANGLE   =        63.9926  DIHED      =        36.7026
+ 1-4 NB =        16.0329  1-4 EEL =        98.0857  VDWAALS    =      2157.3768
+ EELEC  =    -17186.4787  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47947.9005
+                                                    Density    =         0.9854
+ DV/DL  =        18.7170
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       80   TIME(PS) =       0.080  TEMP(K) =   300.67  PRESS =     0.0
+ Etot   =    -11982.2512  EKtot   =      2823.3873  EPtot      =    -14805.6385
+ BOND   =        13.3776  ANGLE   =        65.9615  DIHED      =        37.5547
+ 1-4 NB =        16.1370  1-4 EEL =        98.3537  VDWAALS    =      2125.5418
+ EELEC  =    -17162.5647  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        19.0402
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       80   TIME(PS) =       0.080  TEMP(K) =   300.65  PRESS =     0.0
+ Etot   =    -11982.4275  EKtot   =      2823.2110  EPtot      =    -14805.6385
+ BOND   =        13.3776  ANGLE   =        65.9615  DIHED      =        37.5547
+ 1-4 NB =        16.1370  1-4 EEL =        98.3537  VDWAALS    =      2125.5418
+ EELEC  =    -17162.5647  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        19.0402
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              8
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       82   TIME(PS) =       0.082  TEMP(K) =   301.92  PRESS =     0.0
+ Etot   =    -11982.1919  EKtot   =      2835.1257  EPtot      =    -14817.3177
+ BOND   =        12.5405  ANGLE   =        63.8838  DIHED      =        37.6853
+ 1-4 NB =        16.2518  1-4 EEL =        98.4344  VDWAALS    =      2129.2551
+ EELEC  =    -17175.3686  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        18.7929
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       82   TIME(PS) =       0.082  TEMP(K) =   301.90  PRESS =     0.0
+ Etot   =    -11982.3485  EKtot   =      2834.9691  EPtot      =    -14817.3177
+ BOND   =        12.5405  ANGLE   =        63.8838  DIHED      =        37.6853
+ 1-4 NB =        16.2518  1-4 EEL =        98.4344  VDWAALS    =      2129.2551
+ EELEC  =    -17175.3686  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        18.7929
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       84   TIME(PS) =       0.084  TEMP(K) =   302.99  PRESS =     0.0
+ Etot   =    -11982.3789  EKtot   =      2845.2088  EPtot      =    -14827.5877
+ BOND   =        12.9260  ANGLE   =        61.2813  DIHED      =        36.9540
+ 1-4 NB =        16.4370  1-4 EEL =        98.4228  VDWAALS    =      2134.0035
+ EELEC  =    -17187.6124  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        18.1681
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       84   TIME(PS) =       0.084  TEMP(K) =   302.98  PRESS =     0.0
+ Etot   =    -11982.4510  EKtot   =      2845.1367  EPtot      =    -14827.5877
+ BOND   =        12.9260  ANGLE   =        61.2813  DIHED      =        36.9540
+ 1-4 NB =        16.4370  1-4 EEL =        98.4228  VDWAALS    =      2134.0035
+ EELEC  =    -17187.6124  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        18.1681
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       86   TIME(PS) =       0.086  TEMP(K) =   303.34  PRESS =     0.0
+ Etot   =    -11982.3157  EKtot   =      2848.5377  EPtot      =    -14830.8534
+ BOND   =        13.9851  ANGLE   =        62.6266  DIHED      =        35.7864
+ 1-4 NB =        16.7298  1-4 EEL =        98.4960  VDWAALS    =      2139.2761
+ EELEC  =    -17197.7533  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        17.4731
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       86   TIME(PS) =       0.086  TEMP(K) =   303.35  PRESS =     0.0
+ Etot   =    -11982.2516  EKtot   =      2848.6018  EPtot      =    -14830.8534
+ BOND   =        13.9851  ANGLE   =        62.6266  DIHED      =        35.7864
+ 1-4 NB =        16.7298  1-4 EEL =        98.4960  VDWAALS    =      2139.2761
+ EELEC  =    -17197.7533  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        17.4731
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       88   TIME(PS) =       0.088  TEMP(K) =   303.09  PRESS =     0.0
+ Etot   =    -11982.2314  EKtot   =      2846.1749  EPtot      =    -14828.4063
+ BOND   =        14.5712  ANGLE   =        67.5322  DIHED      =        34.6897
+ 1-4 NB =        17.0802  1-4 EEL =        98.7854  VDWAALS    =      2144.7991
+ EELEC  =    -17205.8642  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        17.1195
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       88   TIME(PS) =       0.088  TEMP(K) =   303.11  PRESS =     0.0
+ Etot   =    -11982.0608  EKtot   =      2846.3455  EPtot      =    -14828.4063
+ BOND   =        14.5712  ANGLE   =        67.5322  DIHED      =        34.6897
+ 1-4 NB =        17.0802  1-4 EEL =        98.7854  VDWAALS    =      2144.7991
+ EELEC  =    -17205.8642  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     48033.0390
+                                                    Density    =         0.9837
+ DV/DL  =        17.1195
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       90   TIME(PS) =       0.090  TEMP(K) =   302.97  PRESS =     0.0
+ Etot   =    -11988.2147  EKtot   =      2845.0157  EPtot      =    -14833.2304
+ BOND   =        13.7298  ANGLE   =        70.4417  DIHED      =        34.0188
+ 1-4 NB =        17.3681  1-4 EEL =        99.3077  VDWAALS    =      2281.9571
+ EELEC  =    -17350.0536  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        17.4927
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       90   TIME(PS) =       0.090  TEMP(K) =   302.99  PRESS =     0.0
+ Etot   =    -11988.0327  EKtot   =      2845.1977  EPtot      =    -14833.2304
+ BOND   =        13.7298  ANGLE   =        70.4417  DIHED      =        34.0188
+ 1-4 NB =        17.3681  1-4 EEL =        99.3077  VDWAALS    =      2281.9571
+ EELEC  =    -17350.0536  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        17.4927
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =              9
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       92   TIME(PS) =       0.092  TEMP(K) =   303.35  PRESS =     0.0
+ Etot   =    -11992.7752  EKtot   =      2848.6249  EPtot      =    -14841.4001
+ BOND   =        11.5758  ANGLE   =        66.5560  DIHED      =        34.1400
+ 1-4 NB =        17.3832  1-4 EEL =        99.3309  VDWAALS    =      2287.8395
+ EELEC  =    -17358.2256  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        18.0125
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       92   TIME(PS) =       0.092  TEMP(K) =   303.36  PRESS =     0.0
+ Etot   =    -11992.6885  EKtot   =      2848.7116  EPtot      =    -14841.4001
+ BOND   =        11.5758  ANGLE   =        66.5560  DIHED      =        34.1400
+ 1-4 NB =        17.3832  1-4 EEL =        99.3309  VDWAALS    =      2287.8395
+ EELEC  =    -17358.2256  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        18.0125
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       94   TIME(PS) =       0.094  TEMP(K) =   304.19  PRESS =     0.0
+ Etot   =    -11992.9430  EKtot   =      2856.4482  EPtot      =    -14849.3912
+ BOND   =        11.2708  ANGLE   =        59.3686  DIHED      =        34.2681
+ 1-4 NB =        17.3118  1-4 EEL =       100.1116  VDWAALS    =      2292.7455
+ EELEC  =    -17364.4676  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        20.3558
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       94   TIME(PS) =       0.094  TEMP(K) =   304.19  PRESS =     0.0
+ Etot   =    -11992.8958  EKtot   =      2856.4954  EPtot      =    -14849.3912
+ BOND   =        11.2708  ANGLE   =        59.3686  DIHED      =        34.2681
+ 1-4 NB =        17.3118  1-4 EEL =       100.1116  VDWAALS    =      2292.7455
+ EELEC  =    -17364.4676  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        20.3558
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       96   TIME(PS) =       0.096  TEMP(K) =   304.33  PRESS =     0.0
+ Etot   =    -11992.9590  EKtot   =      2857.8289  EPtot      =    -14850.7880
+ BOND   =        13.5597  ANGLE   =        55.0722  DIHED      =        34.5340
+ 1-4 NB =        17.1665  1-4 EEL =       100.8958  VDWAALS    =      2297.2545
+ EELEC  =    -17369.2707  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        22.6378
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       96   TIME(PS) =       0.096  TEMP(K) =   304.34  PRESS =     0.0
+ Etot   =    -11992.8976  EKtot   =      2857.8903  EPtot      =    -14850.7880
+ BOND   =        13.5597  ANGLE   =        55.0722  DIHED      =        34.5340
+ 1-4 NB =        17.1665  1-4 EEL =       100.8958  VDWAALS    =      2297.2545
+ EELEC  =    -17369.2707  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        22.6378
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       98   TIME(PS) =       0.098  TEMP(K) =   303.58  PRESS =     0.0
+ Etot   =    -11992.8811  EKtot   =      2850.7802  EPtot      =    -14843.6613
+ BOND   =        16.4218  ANGLE   =        56.6347  DIHED      =        34.7036
+ 1-4 NB =        17.0404  1-4 EEL =       101.5482  VDWAALS    =      2301.4512
+ EELEC  =    -17371.4611  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        24.2086
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       98   TIME(PS) =       0.098  TEMP(K) =   303.59  PRESS =     0.0
+ Etot   =    -11992.7784  EKtot   =      2850.8829  EPtot      =    -14843.6613
+ BOND   =        16.4218  ANGLE   =        56.6347  DIHED      =        34.7036
+ 1-4 NB =        17.0404  1-4 EEL =       101.5482  VDWAALS    =      2301.4512
+ EELEC  =    -17371.4611  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47712.1377
+                                                    Density    =         0.9903
+ DV/DL  =        24.2086
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =   302.60  PRESS =     0.0
+ Etot   =    -11990.0664  EKtot   =      2841.5624  EPtot      =    -14831.6288
+ BOND   =        17.0204  ANGLE   =        60.2658  DIHED      =        34.6759
+ 1-4 NB =        16.9509  1-4 EEL =       101.9143  VDWAALS    =      2230.6515
+ EELEC  =    -17293.1076  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47891.5278
+                                                    Density    =         0.9866
+ DV/DL  =        24.6566
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =   302.61  PRESS =     0.0
+ Etot   =    -11989.9497  EKtot   =      2841.6791  EPtot      =    -14831.6288
+ BOND   =        17.0204  ANGLE   =        60.2658  DIHED      =        34.6759
+ 1-4 NB =        16.9509  1-4 EEL =       101.9143  VDWAALS    =      2230.6515
+ EELEC  =    -17293.1076  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     47891.5278
+                                                    Density    =         0.9866
+ DV/DL  =        24.6566
+ TEMP0  =       300.0000  REPNUM  =              1  EXCHANGE#  =             10
+ ------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|  NonSetup CPU Time in Major Routines, Average for All Tasks:
+|
+|     Routine           Sec        %
+|     ------------------------------
+|     DataDistrib       0.00    0.01
+|     Nonbond           0.26   10.65
+|     Bond              0.00    0.00
+|     Angle             0.00    0.00
+|     Dihedral          0.00    0.00
+|     Shake             0.00    0.02
+|     RunMD             1.33   54.35
+|     Other             0.86   34.97
+|     ------------------------------
+|     Total             2.45
+
+|  PME Nonbond Pairlist CPU Time, Average for All Tasks:
+|
+|     Routine              Sec        %
+|     ---------------------------------
+|     Set Up Cit           0.00    0.00
+|     Build List           0.00    0.00
+|     ---------------------------------
+|     Total                0.00    0.00
+
+|  PME Direct Force CPU Time, Average for All Tasks:
+|
+|     Routine              Sec        %
+|     ---------------------------------
+|     NonBonded Calc       0.00    0.00
+|     Exclude Masked       0.00    0.00
+|     Other                0.00    0.02
+|     ---------------------------------
+|     Total                0.00    0.02
+
+|  PME Reciprocal Force CPU Time, Average for All Tasks:
+|
+|     Routine              Sec        %
+|     ---------------------------------
+|     1D bspline           0.00    0.00
+|     Grid Charges         0.00    0.00
+|     Scalar Sum           0.00    0.00
+|     Gradient Sum         0.00    0.00
+|     FFT                  0.00    0.00
+|     ---------------------------------
+|     Total                0.00    0.00
+
+|  PME Load Balancing CPU Time, Average for All Tasks:
+|
+|     Routine                 Sec        %
+|     ------------------------------------
+|     Atom Reassign           0.00    0.00
+|     Image Reassign          0.00    0.00
+|     FFT Reassign            0.00    0.00
+|     ------------------------------------
+|     Total                   0.00    0.00
+
+|  Final Performance Info:
+|     -----------------------------------------------------
+|     Average timings for last     100 steps:
+|     Elapsed(s) =       2.44 Per Step(ms) =      24.44
+|         ns/day =       3.53   seconds/ns =   24444.96
+|
+|     Average timings for all steps:
+|     Elapsed(s) =       2.44 Per Step(ms) =      24.44
+|         ns/day =       3.53   seconds/ns =   24444.96
+|     -----------------------------------------------------
+
+|  Master Setup CPU time:            2.33 seconds
+|  Master NonSetup CPU time:         2.45 seconds
+|  Master Total CPU time:            4.78 seconds     0.00 hours
+
+|  Master Setup wall time:           6    seconds
+|  Master NonSetup wall time:        2    seconds
+|  Master Total wall time:           8    seconds     0.00 hours

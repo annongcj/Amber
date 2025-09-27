@@ -1,0 +1,84 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda 
+#TEST-DESCRIP machine learning MD 
+#TEST-PURPOSE regression, advanced
+#TEST-STATE   undocumented
+
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd
+  endif
+  set output = mdout
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.MPI
+  endif
+  set output = mdout.MPI
+endif
+
+set top = "../GG_nW20.top"
+set pdb = "../GG_nW20.pdb"
+set crd = "../GG_nW20.crd"
+
+
+cat > mdin <<EOF
+Comment: this is an KMMD test run.
+&cntrl
+igb             = 2,        !6: vacuum, 0: periodic vacuum
+ntx             = 1,        !5:Read coordinates and velocities
+irest           = 0,        !1:This is a restart
+cut             = 12,        !Cut off for pairwise interactions
+ntc             = 2,        !Hold covalent bonds with H atoms rigid
+ntf             = 2,        !Do not calculate H atom bond stretching
+tempi           = 300.0,    !Initial temperature
+ntt             = 3,        !Using a Langevin Thermostat
+gamma_ln        = 100.0,    !Collision frequency                    
+ig              = 1999,     !Seed
+nstlim          = 100,      !Number of MD steps
+dt              = 0.001,    !Length of step (ps)
+ntpr            = 1, ntwx = 10, ntwf = 1, ntwr = 1000000, 
+iextpot=1, ioutfm=0,
+/
+&extpot
+extprog='kmmd',
+json='../kmmd_test.json',
+/
+EOF
+
+
+($DO_PARALLEL $sander -O -i mdin \
+                         -c ${crd} \
+                         -p ${top} \
+                         -o ${output} > kmmd.stdout ) \
+                   >& kmmd.stderr || goto error
+
+
+
+##uncomment these lines to regenerate the reference sets.
+#cp $output            $output.save
+
+##diff the test and reference
+../../dacdif -t 2  $output.save $output 
+
+/bin/rm -f mdin mdinfo mdcrd mdfrc restrt tidied*txt *.dat
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+
+
+
+

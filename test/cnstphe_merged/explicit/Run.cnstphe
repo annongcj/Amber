@@ -1,0 +1,55 @@
+#!/bin/sh
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+. ../../program_error.sh
+
+if [ -z "$TESTsander" ]; then
+   TESTsander="$AMBERHOME/bin/sander"
+fi
+
+if [ -z "$DO_PARALLEL" ]; then
+   export DO_PARALLEL=" "
+fi
+
+cat > mdin <<EOF
+Explicit solvent molecular dynamics constant pH,E MD
+ &cntrl
+   imin=0, irest=1, ntx=5,
+   ntpr=5, ntwx=0, nstlim=40,
+   dt=0.002, ntt=3, tempi=300,
+   temp0=300, gamma_ln=1.0, ig=45,
+   ntc=2, ntf=2, cut=8, iwrap=1, ioutfm=1,
+   icnstph=2, ntcnstph=10, solvph=7.0,
+   ntrelax=10,
+   icnste=2, solve=0.86,
+   saltcon=0.1,
+   /
+EOF
+
+$DO_PARALLEL $TESTsander -O -c min.x -cpein cpein < /dev/null || error
+
+if [ "`basename $TESTsander`" = "pmemd" -o "`basename $TESTsander`" = "pmemd.MPI"  -o "`basename $TESTsander`" = "pmemd.mic_offload.MPI" ]; then
+if [ "`basename $TESTsander`" = "pmemd.mic_offload.MPI" ]; then
+   ../../dacdif -r 1.0e-05 mdout.pmemd.save mdout
+else   
+   ../../dacdif mdout.pmemd.save mdout
+fi
+else
+   ../../dacdif mdout.save mdout
+fi
+../../dacdif cpeout.save cpeout
+
+#sed "s/ //g" cperestrt > cperestrt.tmp
+#if [ "`basename $TESTsander`" = "pmemd" -o "`basename $TESTsander`" = "pmemd.MPI"  -o "`basename $TESTsander`" = "pmemd.mic_offload.MPI" ]; then
+#  sed "s/ //g" cperestrt.pmemd.save > cperestrt.pmemd.save.tmp
+#  ../../dacdif cperestrt.pmemd.save.tmp cperestrt.tmp
+#else
+#  sed "s/ //g" cperestrt.save > cperestrt.save.tmp
+#  ../../dacdif cperestrt.save.tmp cperestrt.tmp
+#fi
+
+/bin/rm -f mdin restrt mdinfo profile_mpi
+exit 0

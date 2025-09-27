@@ -1,0 +1,91 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP distance restraints using nmropt=1 on 2 distances
+#TEST-PURPOSE pedagogical basic
+#TEST-STATE   ok
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+ Test of nmropt on distance
+ &cntrl                                                                        
+   ig=71277,       ! set random seed
+   nstlim = 20,    ! 50 steps
+   igb=0,          ! explicit solvent
+   ntb=1,          ! periodic boundaries
+   ntx=5,          ! restart with velocities
+   irest=1, 
+   ntpr=1,         ! mdout
+   dt=0.001,       ! 1 fs timestep
+   ntt=1,          ! T coupling
+   ntc=2,          ! use shake
+   ntf=2,  
+   ntwr = 200,     ! dont write rst
+   nmropt=1, 
+ /
+ &ewald
+  nfft1=64,
+  nfft2=64,
+  nfft3=64, netfrc=0,
+ /
+ &wt type='DUMPFREQ', istep1=2  /
+ &wt type='END'   /
+DISANG=dist_pbc.RST
+DUMPAVE=dist_pbc_vs_t
+LISTIN=POUT
+LISTOUT=POUT
+/
+EOF
+
+cat > dist_pbc.RST <<EOF
+# bond restraints for gb
+ &rst  iat=1273,1233, r1=1.52, r2=6.52, r3=6.52, r4=11.52, rk2 = 20.0, rk3 = 20.0,   /
+ &rst  iat=1237,1171, r1=1.66, r2=6.66, r3=6.66, r4=11.66, rk2 = 10.0, rk3 = 10.0,   /
+EOF
+
+set output = mdout
+set vs_t_output = dist_pbc_vs_t
+set output_save = $output.GPU_$1
+set vs_t_output_save = $vs_t_output.GPU_$1
+
+touch dummy
+$DO_PARALLEL $sander -O -p ../myoglobin_pbc.prmtop -c ../myoglobin_pbc.inpcrd -i mdin -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../../dacdif -r 1.0e-7 $output_save $output
+  ../../../../dacdif -r 1.0e-7 $vs_t_output_save $vs_t_output
+else
+  #4 sig figs
+  ../../../../dacdif -r 2.1e-4 $output_save $output
+  ../../../../dacdif -r 1.0e-4 $vs_t_output_save $vs_t_output
+endif
+
+
+/bin/rm -f mdin restrt mdinfo profile_mpi logfile dist_pbc.RST dummy
+
+exit (0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+

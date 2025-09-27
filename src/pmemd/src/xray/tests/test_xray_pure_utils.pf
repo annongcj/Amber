@@ -1,0 +1,565 @@
+module test_xray_pure_utils
+  use xray_pure_utils
+  use funit
+  implicit none
+  integer, parameter , private :: rk = real_kind
+  real(real_kind), parameter :: tolerance = 5e-5  ! Absolute tolerance
+  
+contains
+  
+  
+  @test
+  subroutine test_ln_of_i0()
+    
+    @assertEqual(ln_of_i0(0.0_rk), 0.0_rk, tolerance = tolerance)
+    
+    @assertEqual(ln_of_i0(1.0_rk), 0.2359143585071_rk, tolerance = tolerance)
+    @assertEqual(ln_of_i0(2.0_rk), 0.8239935414829_rk, tolerance = tolerance)
+    @assertEqual(ln_of_i0(10.0_rk), 7.9429720831186_rk, tolerance = tolerance)
+    
+    @assertEqual(ln_of_i0(-1.0_rk), 0.2359143585071_rk, tolerance = tolerance)
+    @assertEqual(ln_of_i0(-2.0_rk), 0.8239935414829_rk, tolerance = tolerance)
+    @assertEqual(ln_of_i0(-10.0_rk), 7.9429720831186_rk, tolerance = tolerance)
+    
+    @assertEqual(ln_of_i0(100.0_rk), 96.77973268994_rk, tolerance = tolerance)
+  end subroutine test_ln_of_i0
+  
+  @test
+  subroutine test_i1_over_i0()
+    
+    @assertEqual(i1_over_i0(0.0_rk), 0.0_rk, tolerance = tolerance)
+    
+    @assertEqual(i1_over_i0(1.0_rk), 0.4463899658965_rk, tolerance = tolerance)
+    @assertEqual(i1_over_i0(2.0_rk), 0.6977746579640_rk, tolerance = tolerance)
+    @assertEqual(i1_over_i0(10.0_rk), 0.9485998259548_rk, tolerance = tolerance)
+    
+    @assertEqual(i1_over_i0(-1.0_rk), -0.4463899658965_rk, tolerance = tolerance)
+    @assertEqual(i1_over_i0(-2.0_rk), -0.6977746579640_rk, tolerance = tolerance)
+    @assertEqual(i1_over_i0(-10.0_rk), -0.9485998259548_rk, tolerance = tolerance)
+    
+    @assertEqual(i1_over_i0(100.0_rk), 0.9949873730051_rk, tolerance = tolerance)
+  
+  end subroutine test_i1_over_i0
+  
+  @test
+  subroutine test_index_partition()
+    integer :: idx(10)
+    integer, parameter :: expected(10) = (/1, 3, 5, 7, 10, 6, 4, 8, 9, 2/)
+    logical, parameter :: move_front(10) = (/ .TRUE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .FALSE., .TRUE. /)
+    
+    idx = (/ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 /)
+    
+    call index_partition(move_front, idx)
+    @assertEqual(idx, expected)
+  
+  end subroutine test_index_partition
+  
+  @test
+  subroutine test_estimate_t_optimal()
+    integer, parameter :: n = 10       ! Number of free reflexes in resolution bin
+    
+    real(real_kind) :: abs_Fcalc(n), abs_Fobs(n)
+    real(real_kind) :: A, B, q, p
+    real(real_kind) :: t
+    
+    ! Test-case #1
+    ! Perfect model has trivial solution
+    abs_Fcalc = 1
+    abs_Fobs = 1
+    
+    B = sum(abs_Fobs ** 2) / size(abs_Fobs)
+    q = sum(abs_Fobs ** 4) / size(abs_Fobs)
+    A = sum(abs_Fcalc ** 2) / size(abs_Fobs)
+    p = sum(abs_Fcalc ** 4) / size(abs_Fobs)
+
+    t = estimate_t_optimal(abs_Fobs, abs_Fcalc, B, q, A, p)
+
+    @assertEqual(0.0_real_kind, t)
+
+    ! Test-case #2
+    ! Arbitrary s.f. just to trigger non-trivial case
+    ! Essentially it's a regression test
+    
+    abs_Fcalc = (/ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 /)
+    abs_Fobs =  (/ 1, 2, 4, 3, 4, 7, 8, 9, 10, 9 /)
+
+    B = sum(abs_Fobs ** 2) / size(abs_Fobs)
+    q = sum(abs_Fobs ** 4) / size(abs_Fobs)
+    A = sum(abs_Fcalc ** 2) / size(abs_Fobs)
+    p = sum(abs_Fcalc ** 4) / size(abs_Fobs)
+
+    t = estimate_t_optimal(abs_Fobs, abs_Fcalc, B, q, A, p)
+
+    @assertEqual(0.6601651356, t, tolerance = 1e-6)
+
+  end subroutine test_estimate_t_optimal
+  
+  @test
+  subroutine test_estimate_bin_alpha_beta()
+    integer, parameter :: n = 6       ! Number of free reflexes in resolution bin
+    
+    real(real_kind) :: abs_Fcalc(n), abs_Fobs(n)
+    real(real_kind) :: A, B, q, p
+    real(real_kind) :: t
+    real(real_kind) :: alpha, beta
+    
+    ! Expected values are calculated via cctbx (using same Fcalc/Fobs)
+    real(real_kind), parameter :: expected_alpha = 123212.2657688287
+    real(real_kind), parameter :: expected_beta = 61.20231650830412
+
+    abs_Fcalc = (/ 2.34501923094e-08, 6.14927998104e-08, 1.47859471984e-06, &
+                   4.98735417547e-06, 2.90575879128e-07, 7.41073430469e-05 /)
+    abs_Fobs =  (/ 6, 7, 8, 9, 10, 11 /)
+    
+    B = sum(abs_Fobs ** 2) / size(abs_Fobs)
+    q = sum(abs_Fobs ** 4) / size(abs_Fobs)
+    A = sum(abs_Fcalc ** 2) / size(abs_Fobs)
+    p = sum(abs_Fcalc ** 4) / size(abs_Fobs)
+
+    t = estimate_t_optimal(abs_Fobs, abs_Fcalc, B, q, A, p)
+
+    call calc_bin_alpha_beta(t, A, B, alpha, beta)
+    
+    @assertEqual(expected_alpha, alpha, tolerance=1e-2)
+    @assertEqual(expected_beta, beta, tolerance=1e-4)
+
+  end subroutine test_estimate_bin_alpha_beta
+  
+  @test
+  subroutine test_create_log_bins()
+  
+    real(real_kind), parameter :: resolution(15) = (/ &
+            0.4, 0.5, 0.6, 0.7, 0.8, &
+            0.9, 1.0, 1.2, 1.4, 2.0, &
+            2.1, 2.4, 2.5, 2.6, 2.7 &
+        /)
+    integer, parameter :: n = 10
+    integer :: starts(n)
+    integer :: counts(n)
+    integer :: n_bins
+    integer :: i, k
+    
+    do k = 2, n
+      
+      call create_logspace_resolution_bins(resolution, 3, 2, starts(:k), counts(:k), n_bins)
+    
+      @assertTrue(n_bins <= k)
+      @assertTrue(counts(:n_bins) >= 2)
+      
+      @assertEqual(sum(counts(:n_bins)), size(resolution))
+      
+      do i = 2, n_bins
+        @assertEqual(starts(i), starts(i - 1) + counts(i - 1))
+      end do
+    end do
+    
+  end subroutine test_create_log_bins
+  
+  
+  @test
+  subroutine test_index_sort()
+    integer, parameter :: n = 8
+    real(real_kind), parameter :: values(n) = (/ &
+        7.0, 4.0, -1.0, 10.0, 3.0, 1.0, 1.3, 1.2 &
+        /)
+    integer :: index(n)
+    integer :: i
+    
+    do i = 1, n
+      index(i) = i
+    end do
+    
+    call index_sort(values, index)
+    
+    do i = 1, n - 1
+      @assertLessThan(values(index(i)), values(index(i + 1)))
+    end do
+  
+  end subroutine test_index_sort
+  
+  
+  @test
+  subroutine test_index_insertion_sort()
+    integer, parameter :: n = 8
+    real(real_kind), parameter :: values(n) = (/ &
+        7.0, 4.0, -1.0, 10.0, 3.0, 1.0, 1.3, 1.2 &
+        /)
+    integer :: index(n)
+    integer :: i
+    
+    do i = 1, n
+      index(i) = i
+    end do
+    
+    call index_insertion_sort(values, index)
+    
+    @assertEqual((n*(n+1))/2, sum(index))
+    
+    do i = 1, n - 1
+      @assertLessThan(values(index(i)), values(index(i + 1)))
+    end do
+  
+  end subroutine test_index_insertion_sort
+  
+  
+  @test
+  subroutine test_index_quick_sort()
+    integer, parameter :: n = 8
+    real(real_kind), parameter :: values(n) = (/ &
+        7.0, 4.0, -1.0, 10.0, 3.0, 1.0, 1.3, 1.2 &
+        /)
+    integer :: index(n)
+    integer :: i
+    
+    do i = 1, n
+      index(i) = i
+    end do
+    
+    call index_quick_sort(values, index)
+    
+    @assertEqual((n*(n+1))/2, sum(index))
+    
+    do i = 1, n - 1
+      @assertLessThan(values(index(i)), values(index(i + 1)))
+    end do
+  
+  end subroutine test_index_quick_sort
+  
+  
+  @test
+  subroutine test_index_hybrid_quick_sort()
+    integer, parameter :: n = 16 * 1024
+    real(real_kind) :: values(n)
+    integer :: index(n)
+    integer :: i
+    
+    do i = 1, n
+      index(i) = i
+    end do
+
+    call random_number(values)
+    
+    call index_hybrid_quick_sort(values, index)
+
+    @assertEqual((n*(n+1))/2, sum(index))
+
+    do i = 1, n - 1
+      @assertLessThan(values(index(i)), values(index(i + 1)))
+    end do
+  
+  end subroutine test_index_hybrid_quick_sort
+  
+  
+  @test
+  subroutine test_create_equisized_bins()
+    integer, parameter :: n_elements = 100
+    
+    integer, parameter :: max_n_bins = 120
+    integer :: starts(max_n_bins), sizes(max_n_bins)
+    integer :: n_bins
+    integer :: i
+    
+    do n_bins = 1, max_n_bins
+      call create_equisized_bins(n_elements, n_bins, starts(:n_bins), sizes(:n_bins))
+      
+      @assertEqual(n_elements, sum(sizes(:n_bins)))
+      
+      do i = 1, n_bins - 1
+        @assertEqual(starts(i) + sizes(i), starts(i + 1))
+      end do
+      
+      @assertLessThanOrEqual(maxval(sizes(:n_bins)) - minval(sizes(:n_bins)), 1)
+    end do
+    
+  end subroutine test_create_equisized_bins
+  
+  
+  @test
+  subroutine test_assign_resolution_bin_indices()
+  
+    real(real_kind), parameter :: resolution(15) = (/ &
+        0.4, 0.5, 0.6, 0.7, 0.8, &
+            0.9, 1.0, 1.2, 1.4, 2.0, &
+            2.1, 2.4, 2.5, 2.6, 2.7 &
+        /)
+
+    real(real_kind), parameter :: min_bin_resolution(3) = (/ &
+          0.0, 1.0, 2.0 &
+        /)
+    integer :: expected_resolution_bin_index(15) = (/ &
+        1, 1, 1, 1, 1, &
+        1, 2, 2, 2, 3, &
+        3, 3, 3, 3, 3 &
+    /)
+    
+    integer :: resolution_bin_index(15)
+    
+    call assign_resolution_bin_indices(resolution, min_bin_resolution, resolution_bin_index)
+    
+    @assertEqual(expected_resolution_bin_index, resolution_bin_index)
+  
+  end subroutine test_assign_resolution_bin_indices
+  
+  
+  @test
+  subroutine test_calc_k_overall()
+    
+    real(real_kind), parameter :: absFobs(5) = (/ &
+        0.4, 0.5, 0.6, 0.7, 0.8 &
+    /)
+    real(real_kind), parameter :: absFcalc(5) = (/ &
+        0.8, 1.0, 1.2, 1.4, 1.6 &
+    /)
+    
+    @assertEqual(calc_k_overall(absFobs, absFcalc), 0.5_real_kind)
+  
+  end subroutine test_calc_k_overall
+  
+  @test
+  subroutine test_calc_r_factor()
+    
+    real(real_kind), parameter :: absFobs(5) = (/ &
+        0.4, 0.5, 0.6, 0.7, 0.8 &
+        /)
+    real(real_kind), parameter :: absFcalc(5) = (/ &
+        0.8, 1.0, 1.2, 1.4, 1.6 &
+        /)
+    
+    @assertEqual(calc_unscaled_r_factor(absFobs, absFcalc),  1.0_real_kind)
+    
+  end subroutine test_calc_r_factor
+  
+  @test
+  subroutine test_linspace()
+    real(real_kind) :: a(5)
+    
+    a = linspace(0.0_rk, 10.0_rk, 5, endpoint=.FALSE.)
+    
+    @assertEqual(a(1), 0.0_rk)
+    @assertEqual(a(3), 4.0_rk)
+    @assertEqual(a(5), 8.0_rk)
+    
+    a = linspace(0.0_rk, 10.0_rk, 5, endpoint=.TRUE.)
+    
+    @assertEqual(a(1), 0.0_rk)
+    @assertEqual(a(5), 10.0_rk)
+    
+  
+  end subroutine test_linspace
+  
+  @test
+  subroutine test_exponential_fit_1d_analytical()
+    real(real_kind), parameter :: expected_a = 0.7
+    real(real_kind), parameter :: expected_b = 0.2
+    integer, parameter :: n = 5
+    
+    real(real_kind) :: x(n), y(n), z(n)
+    real(real_kind) :: a, b
+    
+    x = (/ 1.0, 2.0, 3.0, 4.0, 5.0  /)
+    z = (/ 3.0, 1.0, 3.0, 2.0, 2.0  /)
+    y = expected_a * z * exp(-x * expected_b)
+ 
+    call exponential_fit_1d_analytical(y, z, x, a, b)
+
+    @assertEqual(expected_a, a, tolerance = tolerance)
+    @assertEqual(expected_b, b, tolerance = tolerance)
+  
+  end subroutine test_exponential_fit_1d_analytical
+  
+  
+  
+  @test
+  subroutine test_solve_cubic_equation_real()
+    real(real_kind) :: solutions(3)
+    real(real_kind) :: expected_solutions(3)
+    
+    integer, parameter :: n = 15
+    real(real_kind), parameter :: x(n) = (/-13, -11, -7, -5, -3, -2, -1 , 0, 1, 2, 3, 5, 7, 11, 13/)
+    integer :: i, j, k
+    real(real_kind) :: x1, x2, x3
+    real(real_kind) :: a, b, c
+    
+    
+    do i = 1, n
+      x1 = x(i)
+      do j = 1, n
+        x2 = x(j)
+        do k = 1, n
+          x3 = x(k)
+          a = -(x1 + x2 + x3)
+          b = (x1 * x2 + x1 * x3 + x2 * x3)
+          c = -x1 * x2 * x3
+          expected_solutions = sorted( (/ x1, x2, x3 /) )
+          solutions = sorted(solve_cubic_equation_real(a, b, c))
+!          print *
+!          print *, "EXPECTED:", expected_solutions
+!          print *, "   FOUND:", solutions
+          @assertEqual(expected_solutions, solutions, tolerance = tolerance)
+          
+        end do
+      end do
+    end do
+
+    ! Test for complex roots
+    do i = 1, n
+      x1 = x(i)
+      a = -4 - x1
+      b = 5 + 4 * x1
+      c = - 5 * x1
+      
+      expected_solutions = sorted( (/ x1, 99.0_rk, 99.0_rk /) )
+      solutions = sorted(solve_cubic_equation_real(a, b, c, sentinel=99.0_rk))
+!                print *
+!                print *, "EXPECTED:", expected_solutions
+!                print *, "   FOUND:", solutions
+      @assertEqual(expected_solutions, solutions, tolerance = tolerance)
+      
+    end do
+    
+  end subroutine test_solve_cubic_equation_real
+  
+  @test
+  subroutine test_linear_interoplation()
+    real(real_kind) :: k, b
+    
+    call linear_interpolation(0.0_rk, 3.0_rk, 7.0_rk, 8.0_rk, k, b)
+    
+    @assertEqual(1.0_rk/3.0_rk, k, tolerance = tolerance)
+    @assertEqual(7.0_rk, b, tolerance = tolerance)
+  
+  end subroutine test_linear_interoplation
+  
+  
+  @test
+  subroutine test_smooth_with_moving_average()
+    real(real_kind) :: a(5)
+    real(real_kind) :: expected_avg(5)
+    real(real_kind) :: avg(5)
+
+    a = (/ 1, 5, 2, 7, 3/)
+    expected_avg = (/ 1._rk,   2.6666666666666665_rk,   3.3456790123456792_rk,  3.3127572016460909_rk, 3._rk /)
+    avg = smooth_with_moving_average(a)
+    @assertEqual(expected_avg, avg, tolerance = tolerance)
+
+
+    a = (/0.1_rk, 0.44999999999999996_rk, 0.8999999999999999_rk, 0.0_rk, 0.92_rk/)
+    expected_avg = (/0.1_rk, 0.44999999999999996_rk, 0.44999999999999996_rk, 0.6066666666666666_rk, 0.92_rk/)
+    avg = smooth_with_moving_average(a)
+    @assertEqual(expected_avg, avg, tolerance = tolerance)
+  
+  end subroutine test_smooth_with_moving_average
+  
+  
+  @test
+  subroutine test_inverse()
+    real(real_kind) :: a(2, 2)
+    real(real_kind) :: expected_a_inv(2, 2)
+    real(real_kind) :: a_inv(2, 2)
+    
+    
+    a = reshape((/ 1, 3, 2, 4 /), shape(a) )
+    expected_a_inv = reshape((/ 4, -3, -2, 1 /), shape(a) )
+    expected_a_inv = expected_a_inv / (-2.0_rk)
+    
+    a_inv = inverse(a)
+    @assertEqual(expected_a_inv, a_inv, tolerance = tolerance)
+  
+  end subroutine test_inverse
+  
+  
+  @test
+  subroutine test_inverse_symmetric()
+    integer, parameter :: n = 6
+    real(real_kind) :: a(n, n)
+    real(real_kind) :: a_inv(n, n)
+    real(real_kind) :: one(n, n)
+    integer :: i, j
+    
+    call random_number(a)
+    one = 0
+    do i = 1, n
+      do j = i + 1, n
+        a(i, j) = a(j, i)
+      end do
+      one(i, i) = 1
+    end do
+    
+    a_inv = inverse_symmetric(a)
+    @assertEqual(one, matmul(a_inv, a), tolerance = tolerance)
+    @assertEqual(one, matmul(a, a_inv), tolerance = tolerance)
+  
+  end subroutine test_inverse_symmetric
+  
+  @test
+  subroutine test_cross_product_8()
+    real(8) :: v1(3)
+    real(8) :: v2(3)
+    real(8) :: v3(3)
+    
+    v1 = [3.0_8, 2.0_8, 5.0_8]
+    v2 = [-1.0_8, 1.0_8, 2.0_8]
+    v3 = cross_product(v1, v2)
+    
+    @assertEqual(dot_product(v1, v3), 0.0_8)
+    @assertEqual(dot_product(v2, v3), 0.0_8)
+    @assertEqual(v3, [-1.0_8, -11.0_8, 5.0_8])
+  
+  end subroutine test_cross_product_8
+  
+  @test
+  subroutine test_cross_product_4()
+    real(4) :: v1(3)
+    real(4) :: v2(3)
+    real(4) :: v3(3)
+    
+    v1 = [3.0_4, 2.0_4, 5.0_4]
+    v2 = [-1.0_4, 1.0_4, 2.0_4]
+    v3 = cross_product(v1, v2)
+    
+    @assertEqual(dot_product(v1, v3), 0.0_4)
+    @assertEqual(dot_product(v2, v3), 0.0_4)
+    @assertEqual(v3, [-1.0_4, -11.0_4, 5.0_4] )
+  
+  end subroutine test_cross_product_4
+  
+  
+  @test
+  subroutine test_calc_k_bulk_cubic()
+    real(real_kind) :: absFobs(5)
+    complex(real_kind) :: Fprot(5), Fbulk(5)
+    real(real_kind) :: k_bulk_cubic(3)
+    real(real_kind) :: expected_k_bulk_cubic(3)
+
+    absFobs = (/ 1, 2, 3, 4, 5 /)
+    Fprot = (/ (1, 1), (2, 1), (3, 1), (4, 1), (5, 1) /)
+    Fbulk = (/ (1,-1), (2,-1), (3,-1), (4,-1), (5,-1) /)
+
+    k_bulk_cubic = calc_k_bulk_cubic(absFobs, Fprot, Fbulk)
+
+!   !TODO: Check against cctbx
+!    expected_k_bulk_cubic = (/ ... /) ! TODO: fill
+!    @assertEqual(expected_k_bulk_cubic, k_bulk_cubic, tolerance = tolerance) ! TODO: uncomment
+  end subroutine test_calc_k_bulk_cubic
+  
+  
+  @test
+  subroutine test_smooth_k_bulk()
+    real(real_kind) :: k_bulk_in_bins(5)
+    real(real_kind) :: d_in_bins(5)
+    real(real_kind) :: smooth_k_bulk_in_bins(5)
+    real(real_kind) :: expected_smooth_k_bulk_in_bins(5)
+
+    k_bulk_in_bins = (/ 0.1, 0.2, 0.3, 0.4, 0.5 /)
+    d_in_bins = (/ 10, 7, 3, 2, 1 /)
+    expected_smooth_k_bulk_in_bins = (/ 0.1, 0.2, 0.3, 0.4, 0.5 /)
+    
+    smooth_k_bulk_in_bins = smooth_k_bulk(k_bulk_in_bins, d_in_bins)
+    
+!    print *, smooth_k_bulk_in_bins
+    
+    @assertEqual(expected_smooth_k_bulk_in_bins, smooth_k_bulk_in_bins, tolerance = tolerance)
+  end subroutine test_smooth_k_bulk
+  
+end module test_xray_pure_utils
+

@@ -1,0 +1,55 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+   echo "This is a parallel test, DO_PARALLEL must be set!"
+   exit 0
+endif
+
+if( $?TESTsander ) then
+   set sander = $TESTsander
+else
+   set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+endif
+
+set numprocs = `$DO_PARALLEL ../../../numprocs`
+
+if( $numprocs != 2 ) then
+   echo "This test requires a 2 processors!"
+   echo $numprocs" processors detected -- skipping test"
+   exit(0)
+endif
+
+cat > groupfile <<EOF
+-O -i phremd.pH2.mdin -o mdout.pH2 -cpin cpin -p ASPREF.top -c ASPREF_equi.rst -cpout cpout.pH2 -cprestrt cprestrt.pH2
+-O -i phremd.pH2.5.mdin -o mdout.pH2.5 -cpin cpin -p ASPREF.top -c ASPREF_equi.rst -cpout cpout.pH2.5 -cprestrt cprestrt.pH2.5
+EOF
+
+touch dummy
+$DO_PARALLEL $sander -ng 2 -groupfile groupfile -rem 4 -remlog rem.log \
+             < dummy || goto error
+
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../dacdif -r 1.0e-7 mdout.pH2.GPU_$1 mdout.pH2
+else
+  #5 sig figs
+  ../../../dacdif -r 1.0e-5 mdout.pH2.GPU_$1 mdout.pH2
+endif
+
+../../../dacdif cpout.pH2.5.GPU_$1 cpout.pH2.5
+../../../dacdif rem.log.GPU_$1 rem.log
+
+/bin/rm -f groupfile mdout.pH2.5 logfile.* mdcrd.* \
+           cprestrt.* cpout.pH2 restrt.* mdinfo.* rem.type dummy
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)

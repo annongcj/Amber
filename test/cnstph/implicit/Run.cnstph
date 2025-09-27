@@ -1,0 +1,65 @@
+#!/bin/sh
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+. ../../program_error.sh
+
+if [ -z "$TESTsander" ]; then
+   TESTsander="${AMBERHOME}/bin/sander"
+fi
+
+if [ -z "$DO_PARALLEL" ]; then
+   export DO_PARALLEL=" "
+else
+  export numprocs=$(echo $DO_PARALLEL | awk -f ../../numprocs.awk)
+  if [ "$numprocs" -gt  12 ]; then
+      echo " DO_PARALLEL set to $DO_PARALLEL"
+    echo " too many MPI ranks  for this test, exiting (Max MPI ranks = 12)"
+    echo "============================================================"
+    exit 0
+  fi
+fi
+
+
+cat > mdin <<EOF
+ Test of constant pH in GB on HEWL
+ &cntrl                                                                        
+   ig=49,
+   nstlim = 50
+   cut=30.0, igb=2, saltcon=0.1,
+   ntx=1, irest=0, ntb=0, ntpr=1,
+   dt=0.002, nrespa=1,
+   ntt=1, tempi=300.0, temp0 = 300., tautp=2.0,
+   ntc=2, ntf=2, tol=0.000001,
+   ntwr = 20, 
+   icnstph=1, ntcnstph=2, solvph=2.0
+/
+EOF
+
+output=mdout
+
+$DO_PARALLEL $TESTsander -O -i mdin -c min.x  -o $output \
+      -cpin cpin -cpout cpout -cprestrt cprestrt < /dev/null || error
+
+if [ "`basename $TESTsander`" = "pmemd.mic_offload.MPI" ]; then
+   ../../dacdif -r 1.0e-07 $output.save $output
+else
+   ../../dacdif $output.save $output
+fi
+../../dacdif cpout.save cpout
+
+#sed "s/ //g" cprestrt > cprestrt.tmp
+#if [ "`basename $TESTsander`" = "pmemd" -o "`basename $TESTsander`" = "pmemd.MPI"  -o "`basename $TESTsander`" = "pmemd.mic_offload.MPI" ]; then
+#  sed "s/ //g" cprestrt.pmemd.save > cprestrt.pmemd.save.tmp
+#  ../../dacdif cprestrt.pmemd.save.tmp cprestrt.tmp
+#else
+#  sed "s/ //g" cprestrt.save > cprestrt.save.tmp
+#  ../../dacdif cprestrt.save.tmp cprestrt.tmp
+#fi
+
+/bin/rm -f mdin restrt mdinfo profile_mpi
+
+exit 0
+

@@ -1,0 +1,47 @@
+#!/bin/csh -f
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+if( ! $?TESTsander ) set TESTsander = "${AMBERHOME}/bin/sander.MPI"
+ 
+if( ! $?DO_PARALLEL ) then
+    echo "This test must be run in parallel - skipping."
+    exit(0)
+endif
+
+set numgroups = 2
+set numprocs  = `$DO_PARALLEL ../numprocs`
+
+if ( "$numprocs" % $numgroups != 0 ) then
+    echo "This test requires a multiple of $numgroups processors! " \
+         "$numprocs were specified - skipping."
+    exit(0)
+endif
+
+set log = rem.log
+set output = rem.out
+
+#/bin/rm -f $log $output.00? $output.00?.strip
+
+$DO_PARALLEL $TESTsander -ng $numgroups -groupfile groupfile < /dev/null \
+    || goto error
+
+../dacdif $log.save $log
+../dacdif -r 1.e-5 $output.000.save $output.000
+/bin/rm -f rem.r* mdcrd* reminfo.* rem.type $output.00?
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+
+
+

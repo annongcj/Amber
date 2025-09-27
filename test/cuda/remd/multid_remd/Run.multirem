@@ -1,0 +1,38 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  echo "This test is set up for parallel simulations only!"
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+  set numprocs = `$DO_PARALLEL ../../../numprocs`
+  if( "$numprocs" != 4 ) then
+    echo "This test requires 4 GPUs."
+    exit(0)
+  endif
+endif
+
+$DO_PARALLEL $sander -O -ng 4 -groupfile multid_remd.groupfile -remd-file remd.dim < /dev/null || error
+
+../../../dacdif rem.log.1.$1.save rem.log.1
+../../../dacdif rem.log.2.$1.save rem.log.2
+../../../dacdif ala4_ash.rep1.mdout.$1.save ala4_ash.rep1.mdout
+
+/bin/rm -f ala4_as?.rep[234].mdout ala4_as?.rep?.rst7 logfile.00? mdinfo.00?
+
+
+
+
+
+
+

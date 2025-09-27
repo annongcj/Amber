@@ -1,0 +1,48 @@
+pmemd TI NVT production
+&cntrl
+! IO =======================================
+      irest = 0       ! 0 = start, 1 = restart   THIS OPTION MUST BE PRESENT
+        ntx = 1       ! 1 = start, 5 = restart   THIS OPTION MUST BE PRESENT
+       ntxo = 1       ! read/write rst as formatted file
+      iwrap = 1       ! wrap crds to unit cell
+     ioutfm = 1       ! write mdcrd as netcdf
+       ntpr = 10   ! mdout print freq         THIS OPTION MUST BE PRESENT
+       ntwx = 1000   ! mdcrd print freq         THIS OPTION MUST BE PRESENT
+       ntwr = 1000   ! rst print freq           THIS OPTION MUST BE PRESENT
+! DYNAMICS =================================
+     nstlim = 100   ! number of time steps per remd exchange
+   numexchg = 20, gremd_acyc=1,   ! number of remd exchanges
+       imin = 0       ! 0=dynamics, 1=internal minimizer THIS OPTION MUST BE PRESENT
+      ntmin = 1       ! mini algorithm. 2=steepest       THIS OPTION MUST BE PRESENT
+         dt = 0.001
+ntb = 2,   ! ps/step
+        ntb = 2       ! 1=periodic box
+! TEMPERATURE ==============================
+      temp0 = 298.0   ! target temp
+   gamma_ln = 5.0     ! Langevin collision freq
+        ntt = 3       ! thermostat (3=Langevin)
+! PRESSURE  ================================
+        ntp = 1, barostat = 2, mcbarint = 100, pres0 = 1.01325, taup = 2.0,       ! 0=isotropic scaling
+! SHAKE ====================================
+        ntc = 2
+vlimit=20,       ! 1=no shake, 2=HX constrained, 3=all constrained
+        ntf = 1       ! 1=cpt all bond E, 2=ignore HX bond E, 3=ignore all bond E
+! MISC =====================================
+        cut = 10.0
+gti_add_sc = 2, gti_lam_sch = 1,
+         ig = 1231
+       icfe = 1
+       ifsc = 1
+    clambda = 0.27272727
+    !crgmask = '@1-35'
+    timask1 = '@1-35'
+    timask2 = ''
+    scmask1 = '@1-35'
+    scmask2 = ''
+     !
+/
+
+&ewald
+   chngmask = 1 ! default 1; set to 0 when using piscti softcore
+/
+

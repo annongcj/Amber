@@ -1,0 +1,3410 @@
+
+          -------------------------------------------------------
+          Amber 20 PMEMD                              2020
+          -------------------------------------------------------
+
+| PMEMD implementation of SANDER, Release 18
+
+|  Executable base on git commit: a2d5d02a3c4cb69d15bb932bab76601293b585c4
+|  Compiled date/time: Mon Aug 17 20:14:32 2020
+|  Compiled on:  sylvaner
+|  Compiled by:  taisung
+
+| Run on 08/17/2020 at 22:06:11
+
+|   Executable path: /home/taisung/amber/amber_lbsr_test/bin/pmemd.cuda_DPFP
+| Working directory: /home/taisung/amber/amber_lbsr_test/test/cuda/gti/Na
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|   MDIN: mdin                                                                  
+|  MDOUT: md_SC_NVT_MBAR.o                                                      
+| INPCRD: inpcrd                                                                
+|   PARM: prmtop                                                                
+| RESTRT: restrt                                                                
+|   REFC: refc                                                                  
+|  MDVEL: mdvel                                                                 
+|   MDEN: mden                                                                  
+|  MDCRD: mdcrd                                                                 
+| MDINFO: mdinfo                                                                
+|  MDFRC: mdfrc                                                                 
+
+
+ Here is the input file:
+
+NVT MD w/No position restraints and PME (sander)                               
+ &cntrl                                                                        
+  ntx    = 5,                                                                  
+  irest  = 0,                                                                  
+  ntpr   = 2,                                                                  
+  ntwx   = 10000,                                                              
+  ntwe   = 500,                                                                
+  ntwr   = 0,                                                                  
+                                                                               
+  ntxo   = 1,                                                                  
+  ioutfm = 0,                                                                  
+                                                                               
+                                                                               
+                                                                               
+  cut    = 8.0,                                                                
+  iwrap  = 1,                                                                  
+  nsnb   = 10,                                                                 
+  vlimit = 20,                                                                 
+  ig = 372376,                                                                 
+                                                                               
+  temp0  = 300.0,                                                              
+  tempi  = 300.0,                                                              
+  tautp  = 2.0,                                                                
+                                                                               
+!NVE                                                                           
+!  ntt    = 0,                                                                 
+!  ntb=1, ntp=0,                                                               
+!NVT                                                                           
+  ntt    = 1,                                                                  
+  ntb=1, ntp=0,                                                                
+                                                                               
+!NPT-BR                                                                        
+!  ntb=2, ntp=1,                                                               
+!NPT-MC                                                                        
+!   barostat = 2, mcbarint=10,                                                 
+!  barostat = 1,                                                               
+                                                                               
+  nstlim = 100,                                                                
+  t      = 0.0,                                                                
+  nscm   = 1000,                                                               
+  dt     = 0.001,                                                              
+                                                                               
+  ntf    = 1,                                                                  
+  ntc    = 2,                                                                  
+  tol    = 0.000001,                                                           
+                                                                               
+  icfe=1, clambda=0.30,                                                        
+  timask1=":1",                                                                
+  timask2=":2",                                                                
+  ifsc=1,                                                                      
+  scmask1=":1",                                                                
+  scmask2=":2",                                                                
+  crgmask=":2",                                                                
+  mbar_lambda = 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,         
+  mbar_states = 11,                                                            
+  ifmbar = 1,                                                                  
+  bar_intervall = 1,                                                           
+&end                                                                           
+ &ewald                                                                        
+   skinnb=1, nfft1=32, nfft2=32, nfft3=60, netfrc=0,                           
+ /                                                                             
+
+
+| irandom = 1, using AMBER's internal random number generator (default).
+| INFO:    The nsnb ctrl option does not affect nonbonded list update frequency.
+|          It does affect steepest descent minimization freq if ntmin == 0
+ 
+|--------------------- INFORMATION ----------------------
+| GPU (CUDA) Version of PMEMD in use: NVIDIA GPU IN USE.
+|                    Version 18.0.0
+| 
+|                      03/25/2018
+| 
+| Implementation by:
+|                    Ross C. Walker     (SDSC)
+|                    Scott Le Grand     (nVIDIA)
+| 
+| Version 18 performance extensions by:
+|                    David Cerutti     (Rutgers)
+| 
+| Precision model in use:
+|      [DPFP] - Double Precision Forces, 64-bit Fixed point
+|               Accumulation.
+| 
+|--------------------------------------------------------
+ 
+|----------------- CITATION INFORMATION -----------------
+|
+|    When publishing work that utilized the CUDA version
+|    of AMBER, please cite the following in addition to
+|    the regular AMBER citations:
+|
+|  - Romelia Salomon-Ferrer; Andreas W. Goetz; Duncan
+|    Poole; Scott Le Grand; Ross C. Walker "Routine
+|    microsecond molecular dynamics simulations with
+|    AMBER - Part II: Particle Mesh Ewald", J. Chem.
+|    Theory Comput., 2013, 9 (9), pp3878-3888,
+|    DOI: 10.1021/ct400314y.
+|
+|  - Andreas W. Goetz; Mark J. Williamson; Dong Xu;
+|    Duncan Poole; Scott Le Grand; Ross C. Walker
+|    "Routine microsecond molecular dynamics simulations
+|    with AMBER - Part I: Generalized Born", J. Chem.
+|    Theory Comput., 2012, 8 (5), pp1542-1555.
+|
+|    When publishing work that utilized the CUDA version
+|    of TI, BAR, MBAR or FEP please cite the following 
+|    publications in addition to the regular AMBER 
+|    GPU citations:
+|
+|  - Daniel J. Mermelstein; Charles Lin; Gard Nelson; 
+|    Rachael Kretsch; J. Andrew McCammon; Ross C. Walker
+|    "Fast and Flexible GPU Accelerated Binding 
+|    Free Energy Calculations within the AMBER Molecular
+|    Dynamics Package" J. Comp. Chem., 2018,
+|    DOI: 10.1002/jcc.25187
+|
+|  - Tai-Sung Lee; Yuan Hu; Brad Sherborne; Zhuyan Guo;
+|    Darrin M. York
+|    "Toward Fast and Accurate Binding Affinity Prediction with
+|    pmemdGTI: An Efficient Implementation of GPU-Accelerated
+|    Thermodynamic Integration"
+|    J. Chem. Theory Comput., 2017, 13 (7), 3077
+|
+|
+|--------------------------------------------------------
+ 
+|------------------- GPU DEVICE INFO --------------------
+|
+|            CUDA_VISIBLE_DEVICES: 0,1
+|   CUDA Capable Devices Detected:      2
+|           CUDA Device ID in use:      0
+|                CUDA Device Name: GeForce RTX 2080 Ti
+|     CUDA Device Global Mem Size:  11019 MB
+| CUDA Device Num Multiprocessors:     68
+|           CUDA Device Core Freq:   1.63 GHz
+|
+|--------------------------------------------------------
+ 
+ 
+| Conditional Compilation Defines Used:
+| PUBFFT
+| BINTRAJ
+| CUDA
+| EMIL
+
+| Largest sphere to fit in unit cell has radius =    11.472
+
+| New format PARM file being parsed.
+| Version =    1.000 Date = 09/18/12 Time = 22:33:35
+
+| Note: 1-4 EEL scale factors were NOT found in the topology file.
+|       Using default value of 1.2.
+
+| Note: 1-4 VDW scale factors were NOT found in the topology file.
+|       Using default value of 2.0.
+| INFO:    Virtual site frames will be inferred from bonding patterns.
+| Duplicated    0 dihedrals
+
+| Duplicated    0 dihedrals
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+ getting new box info from bottom of inpcrd
+ NATOM  =    1786 NTYPES =       3 NBONH =    1338 MBONA  =     446
+ NTHETH =       0 MTHETA =       0 NPHIH =       0 MPHIA  =       0
+ NHPARM =       0 NPARM  =       0 NNB   =    3124 NRES   =     448
+ NBONA  =     446 NTHETA =       0 NPHIA =       0 NUMBND =       3
+ NUMANG =       0 NPTRA  =       0 NATYP =       4 NPHB   =       1
+ IFBOX  =       2 NMXRS  =       4 IFCAP =       0 NEXTRA =     446
+ NCOPY  =       0
+
+| Coordinate Index Table dimensions:     5    5    5
+| Direct force subcell size =     5.6203    5.6203    5.6203
+
+     BOX TYPE: TRUNCATED OCTAHEDRON
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+                                                                                
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       5, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       1, ntpr    =       2, ntrx    =       1, ntwr    =     100
+     iwrap   =       1, ntwx    =   10000, ntwv    =       0, ntwe    =     500
+     ioutfm  =       0, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      10
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   8.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =       100, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+
+Berendsen (weak-coupling) temperature regulation:
+     temp0   = 300.00000, tempi   = 300.00000, tautp   =   2.00000
+
+SHAKE:
+     ntc     =       2, jfastw  =       0
+     tol     =   0.00000
+
+Free energy options:
+     icfe    =       1, ifsc    =       1, klambda =       1
+     clambda =  0.3000, scalpha =  0.5000, scbeta  = 12.0000
+     sceeorder =       2
+     dynlmb =  0.0000 logdvdl =       0
+
+FEP MBAR options:
+     ifmbar  =       1,  bar_intervall =        1
+     mbar_states =      11
+
+| Intermolecular bonds treatment:
+|     no_intermolecular_bonds =       1
+
+| Energy averages sample interval:
+|     ene_avg_sampling =       2
+
+Extra-points options:
+     frameon =       1, chngmask=       1
+
+Ewald parameters:
+     verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
+     vdwmeth =       1, eedmeth =       1, netfrc  =       0
+     Box X =   28.101   Box Y =   28.101   Box Z =   28.101
+     Alpha =  109.471   Beta  =  109.471   Gamma =  109.471
+     NFFT1 =   32       NFFT2 =   32       NFFT3 =   60
+     Cutoff=    8.000   Tol   =0.100E-04
+     Ewald Coefficient =  0.34864
+     Interpolation order =    4
+     TI Mask 1 :1; matches      1 atoms
+     TI Mask 2 :2; matches      1 atoms
+     TI region 1:    1785 atoms
+     TI region 2:    1785 atoms
+     SC Mask 1 :1; matches      1 atoms
+     SC Mask 2 :2; matches      1 atoms
+Removing charge of       1.0000 from atom       2
+Total charge of   1.00000000 removed from       1 atoms
+
+    MBAR - lambda values considered:
+      11 total:  0.0000 0.1000 0.2000 0.3000 0.4000 0.5000 0.6000 0.7000 0.8000 0.9000 1.0000
+    Extra energies will be computed    100 times.
+| gti_syn_mass has been set to   1
+
+|--------------------------------------------------------------------------------------------
+| Extra TI control variables
+|     gti_add_sc     =   1, gti_ele_gauss  =   0, gti_auto_alpha =   0, gti_scale_beta =   0
+|     gti_ele_exp    =   2, gti_vdw_exp    =   6, gti_ele_sc     =   0, gti_vdw_sc     =   0
+|     gti_cut        =   1, gti_cut_sc     =   0
+|     gti_cut_sc_on    =  0.0000, gti_cut_sc_off    =  0.0000
+|--------------------------------------------------------------------------------------------
+
+|      EXTRA_PTS, trim_bonds: num bonds BEFORE trim =  1338     0
+|      EXTRA_PTS, trim_bonds: num bonds AFTER  trim =  1338     0
+|      EXTRA_PTS, trim_bonds: num bonds BEFORE trim =   446     0
+|      EXTRA_PTS, trim_bonds: num bonds AFTER  trim =     0     0
+|      EXTRA_PTS, trim_theta: num angle BEFORE trim =     0     0
+|      EXTRA_PTS, trim_theta: num angle AFTER  trim =     0     0
+|      EXTRA_PTS, trim_theta: num angle BEFORE trim =     0     0
+|      EXTRA_PTS, trim_theta: num angle AFTER  trim =     0     0
+|      EXTRA_PTS, trim_phi:  num diheds BEFORE trim =     0     0
+|      EXTRA_PTS, trim_phi:  num diheds AFTER  trim =     0     0
+|      EXTRA_PTS, trim_phi:  num diheds BEFORE trim =     0     0
+|      EXTRA_PTS, trim_phi:  num diheds AFTER  trim =     0     0
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+Na+                                                                             
+ begin time read from input coords =    10.000 ps
+
+ 
+ Number of triangulated 3-point waters found:      446
+ Number of shake restraints removed in TI region  1 :        0
+ Number of shake restraints removed in TI region  2 :        0
+
+     Sum of charges for TI region  1 =   1.00000049
+     Skip neutralizing charges...
+
+
+     Sum of charges for TI region  2 =   0.00000049
+     Skip neutralizing charges...
+
+| Dynamic Memory, Types Used:
+| Reals              191825
+| Integers           164270
+
+| Nonbonded Pairs Initial Allocation:      298306
+
+| GPU memory information (estimate):
+| KB of GPU memory in use:     14827
+| KB of CPU memory in use:      9451
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+   DOF for the SC part  1 of the system:    3
+   DOF for the SC part  2 of the system:    3
+
+| TI region  1
+
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =   335.90  PRESS =     0.0
+ Etot   =     -3529.8175  EKtot   =       893.1068  EPtot      =     -4422.9244
+ BOND   =         0.0592  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       732.2168
+ EELEC  =     -5155.2003  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       181.3286
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.42
+ SC_Etot=         0.3709  SC_EKtot=         0.3709  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.9076  SC_VDW_DER=      -7.0242  SC_DERIV   =        20.8835
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =   335.90  PRESS =     0.0
+ Etot   =     -3529.8175  EKtot   =       893.1068  EPtot      =     -4422.9244
+ BOND   =         0.0592  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       732.2168
+ EELEC  =     -5155.2003  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       181.3286
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.71
+ SC_Etot=         0.3688  SC_EKtot=         0.3688  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.9076  SC_VDW_DER=      -7.0242  SC_DERIV   =        20.8835
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4465.395449
+Energy at 0.1000 =     -4447.070675
+Energy at 0.2000 =     -4428.072522
+Energy at 0.3000 =     -4409.638448
+Energy at 0.4000 =     -4391.902125
+Energy at 0.5000 =     -4374.757610
+Energy at 0.6000 =     -4358.028380
+Energy at 0.7000 =     -4341.474957
+Energy at 0.8000 =     -4324.711329
+Energy at 0.9000 =     -4306.927236
+Energy at 1.0000 =     -4285.822648
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =   333.67  PRESS =     0.0
+ Etot   =     -3522.4452  EKtot   =       887.1932  EPtot      =     -4409.6384
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       735.2953
+ EELEC  =     -5144.9338  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       180.7726
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.15
+ SC_Etot=         0.3641  SC_EKtot=         0.3641  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.8574  SC_VDW_DER=      -6.9568  SC_DERIV   =        20.9006
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =   333.68  PRESS =     0.0
+ Etot   =     -3522.4404  EKtot   =       887.1980  EPtot      =     -4409.6384
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       735.2953
+ EELEC  =     -5144.9338  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       180.7726
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.77
+ SC_Etot=         0.3689  SC_EKtot=         0.3689  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.8574  SC_VDW_DER=      -6.9568  SC_DERIV   =        20.9006
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4457.725038
+Energy at 0.1000 =     -4439.391240
+Energy at 0.2000 =     -4420.576235
+Energy at 0.3000 =     -4402.360734
+Energy at 0.4000 =     -4384.848738
+Energy at 0.5000 =     -4367.928013
+Energy at 0.6000 =     -4351.421987
+Energy at 0.7000 =     -4335.094755
+Energy at 0.8000 =     -4318.571070
+Energy at 0.9000 =     -4301.077365
+Energy at 1.0000 =     -4280.483820
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =   330.88  PRESS =     0.0
+ Etot   =     -3522.5861  EKtot   =       879.7746  EPtot      =     -4402.3607
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.6661
+ EELEC  =     -5143.0268  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       178.5384
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         117.66
+ SC_Etot=         0.3507  SC_EKtot=         0.3507  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.6509  SC_VDW_DER=      -6.8256  SC_DERIV   =        20.8253
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =   330.89  PRESS =     0.0
+ Etot   =     -3522.5677  EKtot   =       879.7930  EPtot      =     -4402.3607
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.6661
+ EELEC  =     -5143.0268  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       178.5384
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.85
+ SC_Etot=         0.3692  SC_EKtot=         0.3692  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.6509  SC_VDW_DER=      -6.8256  SC_DERIV   =        20.8253
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4457.645562
+Energy at 0.1000 =     -4439.560037
+Energy at 0.2000 =     -4421.134669
+Energy at 0.3000 =     -4403.326820
+Energy at 0.4000 =     -4386.217958
+Energy at 0.5000 =     -4369.692441
+Energy at 0.6000 =     -4353.575292
+Energy at 0.7000 =     -4337.635177
+Energy at 0.8000 =     -4321.507703
+Energy at 0.9000 =     -4304.452562
+Energy at 1.0000 =     -4284.481788
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =        6   TIME(PS) =       0.006  TEMP(K) =   331.18  PRESS =     0.0
+ Etot   =     -3522.7559  EKtot   =       880.5709  EPtot      =     -4403.3268
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       744.7054
+ EELEC  =     -5148.0322  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       174.4713
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         111.46
+ SC_Etot=         0.3322  SC_EKtot=         0.3322  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.2393  SC_VDW_DER=      -6.6966  SC_DERIV   =        20.5427
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        6   TIME(PS) =       0.006  TEMP(K) =   331.20  PRESS =     0.0
+ Etot   =     -3522.7188  EKtot   =       880.6081  EPtot      =     -4403.3268
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       744.7054
+ EELEC  =     -5148.0322  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       174.4713
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.91
+ SC_Etot=         0.3694  SC_EKtot=         0.3694  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.2393  SC_VDW_DER=      -6.6966  SC_DERIV   =        20.5427
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4464.888026
+Energy at 0.1000 =     -4447.284013
+Energy at 0.2000 =     -4429.432099
+Energy at 0.3000 =     -4412.197632
+Energy at 0.4000 =     -4395.646964
+Energy at 0.5000 =     -4379.664127
+Energy at 0.6000 =     -4364.077476
+Energy at 0.7000 =     -4348.661249
+Energy at 0.8000 =     -4333.061925
+Energy at 0.9000 =     -4316.568979
+Energy at 1.0000 =     -4297.310449
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =        8   TIME(PS) =       0.008  TEMP(K) =   334.46  PRESS =     0.0
+ Etot   =     -3522.9223  EKtot   =       889.2753  EPtot      =     -4412.1976
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       747.0225
+ EELEC  =     -5159.2201  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       168.8073
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         103.82
+ SC_Etot=         0.3095  SC_EKtot=         0.3095  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     26.6217  SC_VDW_DER=      -6.5720  SC_DERIV   =        20.0497
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =        8   TIME(PS) =       0.008  TEMP(K) =   334.48  PRESS =     0.0
+ Etot   =     -3522.8623  EKtot   =       889.3354  EPtot      =     -4412.1976
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       747.0225
+ EELEC  =     -5159.2201  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       168.8073
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.97
+ SC_Etot=         0.3695  SC_EKtot=         0.3695  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     26.6217  SC_VDW_DER=      -6.5720  SC_DERIV   =        20.0497
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4477.028999
+Energy at 0.1000 =     -4460.104296
+Energy at 0.2000 =     -4442.976669
+Energy at 0.3000 =     -4426.448345
+Energy at 0.4000 =     -4410.578040
+Energy at 0.5000 =     -4395.252630
+Energy at 0.6000 =     -4380.305550
+Energy at 0.7000 =     -4365.517561
+Energy at 0.8000 =     -4350.545942
+Energy at 0.9000 =     -4334.706492
+Energy at 1.0000 =     -4316.220313
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =   339.73  PRESS =     0.0
+ Etot   =     -3523.1539  EKtot   =       903.2944  EPtot      =     -4426.4483
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       747.5835
+ EELEC  =     -5174.0318  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       161.8757
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          95.14
+ SC_Etot=         0.2836  SC_EKtot=         0.2836  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     25.8073  SC_VDW_DER=      -6.4538  SC_DERIV   =        19.3535
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =   339.76  PRESS =     0.0
+ Etot   =     -3523.0678  EKtot   =       903.3805  EPtot      =     -4426.4483
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       747.5835
+ EELEC  =     -5174.0318  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       161.8757
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.02
+ SC_Etot=         0.3697  SC_EKtot=         0.3697  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     25.8073  SC_VDW_DER=      -6.4538  SC_DERIV   =        19.3535
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4490.049006
+Energy at 0.1000 =     -4473.956078
+Energy at 0.2000 =     -4457.661921
+Energy at 0.3000 =     -4441.931727
+Energy at 0.4000 =     -4426.823843
+Energy at 0.5000 =     -4412.231090
+Energy at 0.6000 =     -4397.993643
+Energy at 0.7000 =     -4383.899632
+Energy at 0.8000 =     -4369.616944
+Energy at 0.9000 =     -4354.484348
+Energy at 1.0000 =     -4336.796105
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       12   TIME(PS) =       0.012  TEMP(K) =   345.50  PRESS =     0.0
+ Etot   =     -3523.2901  EKtot   =       918.6416  EPtot      =     -4441.9317
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       746.5477
+ EELEC  =     -5188.4795  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       154.0811
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          85.91
+ SC_Etot=         0.2561  SC_EKtot=         0.2561  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     24.8169  SC_VDW_DER=      -6.3439  SC_DERIV   =        18.4730
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       12   TIME(PS) =       0.012  TEMP(K) =   345.54  PRESS =     0.0
+ Etot   =     -3523.1764  EKtot   =       918.7553  EPtot      =     -4441.9317
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       746.5477
+ EELEC  =     -5188.4795  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       154.0811
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.06
+ SC_Etot=         0.3698  SC_EKtot=         0.3698  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     24.8169  SC_VDW_DER=      -6.3439  SC_DERIV   =        18.4730
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4500.190701
+Energy at 0.1000 =     -4485.031461
+Energy at 0.2000 =     -4469.634204
+Energy at 0.3000 =     -4454.750094
+Energy at 0.4000 =     -4440.443870
+Energy at 0.5000 =     -4426.617173
+Energy at 0.6000 =     -4413.118394
+Energy at 0.7000 =     -4399.743708
+Energy at 0.8000 =     -4386.171286
+Energy at 0.9000 =     -4371.759641
+Energy at 1.0000 =     -4354.859228
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       14   TIME(PS) =       0.014  TEMP(K) =   350.28  PRESS =     0.0
+ Etot   =     -3523.4140  EKtot   =       931.3361  EPtot      =     -4454.7501
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       744.2462
+ EELEC  =     -5198.9963  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       145.8571
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          76.65
+ SC_Etot=         0.2285  SC_EKtot=         0.2285  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.6812  SC_VDW_DER=      -6.2439  SC_DERIV   =        17.4373
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       14   TIME(PS) =       0.014  TEMP(K) =   350.33  PRESS =     0.0
+ Etot   =     -3523.2725  EKtot   =       931.4776  EPtot      =     -4454.7501
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       744.2462
+ EELEC  =     -5198.9963  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       145.8571
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.09
+ SC_Etot=         0.3699  SC_EKtot=         0.3699  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.6812  SC_VDW_DER=      -6.2439  SC_DERIV   =        17.4373
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4504.990154
+Energy at 0.1000 =     -4490.815461
+Energy at 0.2000 =     -4476.332937
+Energy at 0.3000 =     -4462.299620
+Energy at 0.4000 =     -4448.792699
+Energy at 0.5000 =     -4435.725138
+Energy at 0.6000 =     -4422.954761
+Energy at 0.7000 =     -4410.286256
+Energy at 0.8000 =     -4397.407588
+Energy at 0.9000 =     -4383.693902
+Energy at 1.0000 =     -4367.537416
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       16   TIME(PS) =       0.016  TEMP(K) =   353.08  PRESS =     0.0
+ Etot   =     -3523.5083  EKtot   =       938.7913  EPtot      =     -4462.2996
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       741.1499
+ EELEC  =     -5203.4495  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.6272
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          67.81
+ SC_Etot=         0.2021  SC_EKtot=         0.2021  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.4390  SC_VDW_DER=      -6.1551  SC_DERIV   =        16.2839
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       16   TIME(PS) =       0.016  TEMP(K) =   353.14  PRESS =     0.0
+ Etot   =     -3523.3405  EKtot   =       938.9591  EPtot      =     -4462.2996
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       741.1499
+ EELEC  =     -5203.4495  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.6272
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.11
+ SC_Etot=         0.3699  SC_EKtot=         0.3699  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.4390  SC_VDW_DER=      -6.1551  SC_DERIV   =        16.2839
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4504.284590
+Energy at 0.1000 =     -4491.099786
+Energy at 0.2000 =     -4477.509741
+Energy at 0.3000 =     -4464.294506
+Energy at 0.4000 =     -4451.548974
+Energy at 0.5000 =     -4439.199515
+Energy at 0.6000 =     -4427.114282
+Energy at 0.7000 =     -4415.106695
+Energy at 0.8000 =     -4402.873842
+Energy at 0.9000 =     -4389.804430
+Energy at 1.0000 =     -4374.319876
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       18   TIME(PS) =       0.018  TEMP(K) =   353.80  PRESS =     0.0
+ Etot   =     -3523.5907  EKtot   =       940.7038  EPtot      =     -4464.2945
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       737.6760
+ EELEC  =     -5201.9705  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       129.7554
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          59.82
+ SC_Etot=         0.1783  SC_EKtot=         0.1783  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     21.1329  SC_VDW_DER=      -6.0788  SC_DERIV   =        15.0541
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       18   TIME(PS) =       0.018  TEMP(K) =   353.87  PRESS =     0.0
+ Etot   =     -3523.3991  EKtot   =       940.8954  EPtot      =     -4464.2945
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       737.6760
+ EELEC  =     -5201.9705  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       129.7554
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.12
+ SC_Etot=         0.3700  SC_EKtot=         0.3700  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     21.1329  SC_VDW_DER=      -6.0788  SC_DERIV   =        15.0541
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4500.008826
+Energy at 0.1000 =     -4487.780077
+Energy at 0.2000 =     -4475.025894
+Energy at 0.3000 =     -4462.564426
+Energy at 0.4000 =     -4450.512787
+Energy at 0.5000 =     -4438.812368
+Energy at 0.6000 =     -4427.342216
+Energy at 0.7000 =     -4415.924425
+Energy at 0.8000 =     -4404.264306
+Energy at 0.9000 =     -4391.760971
+Energy at 1.0000 =     -4376.853468
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       20   TIME(PS) =       0.020  TEMP(K) =   353.08  PRESS =     0.0
+ Etot   =     -3523.7619  EKtot   =       938.8025  EPtot      =     -4462.5644
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       734.2097
+ EELEC  =     -5196.7742  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       122.5468
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          52.99
+ SC_Etot=         0.1579  SC_EKtot=         0.1579  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     19.8094  SC_VDW_DER=      -6.0167  SC_DERIV   =        13.7927
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       20   TIME(PS) =       0.020  TEMP(K) =   353.16  PRESS =     0.0
+ Etot   =     -3523.5499  EKtot   =       939.0145  EPtot      =     -4462.5644
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       734.2097
+ EELEC  =     -5196.7742  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       122.5468
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.11
+ SC_Etot=         0.3700  SC_EKtot=         0.3700  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     19.8094  SC_VDW_DER=      -6.0167  SC_DERIV   =        13.7927
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4494.699072
+Energy at 0.1000 =     -4483.356898
+Energy at 0.2000 =     -4471.350114
+Energy at 0.3000 =     -4459.549073
+Energy at 0.4000 =     -4448.097017
+Energy at 0.5000 =     -4436.951518
+Energy at 0.6000 =     -4426.002708
+Energy at 0.7000 =     -4415.080988
+Energy at 0.8000 =     -4403.898706
+Energy at 0.9000 =     -4391.861940
+Energy at 1.0000 =     -4377.415700
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       22   TIME(PS) =       0.022  TEMP(K) =   351.89  PRESS =     0.0
+ Etot   =     -3523.9146  EKtot   =       935.6345  EPtot      =     -4459.5491
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       730.9602
+ EELEC  =     -5190.5093  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       116.2796
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          47.52
+ SC_Etot=         0.1416  SC_EKtot=         0.1416  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     18.5211  SC_VDW_DER=      -5.9706  SC_DERIV   =        12.5505
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       22   TIME(PS) =       0.022  TEMP(K) =   351.98  PRESS =     0.0
+ Etot   =     -3523.6863  EKtot   =       935.8628  EPtot      =     -4459.5491
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       730.9602
+ EELEC  =     -5190.5093  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       116.2796
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.10
+ SC_Etot=         0.3699  SC_EKtot=         0.3699  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     18.5211  SC_VDW_DER=      -5.9706  SC_DERIV   =        12.5505
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4490.704216
+Energy at 0.1000 =     -4480.149027
+Energy at 0.2000 =     -4468.773743
+Energy at 0.3000 =     -4457.515219
+Energy at 0.4000 =     -4446.546291
+Energy at 0.5000 =     -4435.841393
+Energy at 0.6000 =     -4425.301523
+Energy at 0.7000 =     -4414.764658
+Energy at 0.8000 =     -4403.948627
+Energy at 0.9000 =     -4392.262509
+Energy at 1.0000 =     -4378.144309
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       24   TIME(PS) =       0.024  TEMP(K) =   351.07  PRESS =     0.0
+ Etot   =     -3524.0661  EKtot   =       933.4492  EPtot      =     -4457.5152
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       728.0288
+ EELEC  =     -5185.5441  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       111.1867
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          43.57
+ SC_Etot=         0.1299  SC_EKtot=         0.1299  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     17.3265  SC_VDW_DER=      -5.9429  SC_DERIV   =        11.3836
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       24   TIME(PS) =       0.024  TEMP(K) =   351.16  PRESS =     0.0
+ Etot   =     -3523.8261  EKtot   =       933.6891  EPtot      =     -4457.5152
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       728.0288
+ EELEC  =     -5185.5441  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       111.1867
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.08
+ SC_Etot=         0.3699  SC_EKtot=         0.3699  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     17.3265  SC_VDW_DER=      -5.9429  SC_DERIV   =        11.3836
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4489.669649
+Energy at 0.1000 =     -4479.769546
+Energy at 0.2000 =     -4468.879913
+Energy at 0.3000 =     -4458.019314
+Energy at 0.4000 =     -4447.393208
+Energy at 0.5000 =     -4436.993020
+Energy at 0.6000 =     -4426.729909
+Energy at 0.7000 =     -4416.448274
+Energy at 0.8000 =     -4405.869412
+Energy at 0.9000 =     -4394.400696
+Energy at 1.0000 =     -4380.457818
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       26   TIME(PS) =       0.026  TEMP(K) =   351.17  PRESS =     0.0
+ Etot   =     -3524.3057  EKtot   =       933.7137  EPtot      =     -4458.0193
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       725.4674
+ EELEC  =     -5183.4867  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       107.5197
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          41.30
+ SC_Etot=         0.1231  SC_EKtot=         0.1231  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     16.2938  SC_VDW_DER=      -5.9364  SC_DERIV   =        10.3574
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       26   TIME(PS) =       0.026  TEMP(K) =   351.26  PRESS =     0.0
+ Etot   =     -3524.0590  EKtot   =       933.9603  EPtot      =     -4458.0193
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       725.4674
+ EELEC  =     -5183.4867  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       107.5197
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.05
+ SC_Etot=         0.3698  SC_EKtot=         0.3698  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     16.2938  SC_VDW_DER=      -5.9364  SC_DERIV   =        10.3574
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4492.025475
+Energy at 0.1000 =     -4482.617730
+Energy at 0.2000 =     -4472.040386
+Energy at 0.3000 =     -4461.409508
+Energy at 0.4000 =     -4450.965485
+Energy at 0.5000 =     -4440.716160
+Energy at 0.6000 =     -4430.581579
+Energy at 0.7000 =     -4420.410931
+Energy at 0.8000 =     -4409.926492
+Energy at 0.9000 =     -4398.528390
+Energy at 1.0000 =     -4384.591864
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       28   TIME(PS) =       0.028  TEMP(K) =   352.36  PRESS =     0.0
+ Etot   =     -3524.5246  EKtot   =       936.8849  EPtot      =     -4461.4095
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       723.2980
+ EELEC  =     -5184.7075  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       105.4976
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          40.89
+ SC_Etot=         0.1219  SC_EKtot=         0.1219  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     15.4950  SC_VDW_DER=      -5.9536  SC_DERIV   =         9.5414
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       28   TIME(PS) =       0.028  TEMP(K) =   352.46  PRESS =     0.0
+ Etot   =     -3524.2769  EKtot   =       937.1327  EPtot      =     -4461.4095
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       723.2980
+ EELEC  =     -5184.7075  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       105.4976
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         124.01
+ SC_Etot=         0.3697  SC_EKtot=         0.3697  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     15.4950  SC_VDW_DER=      -5.9536  SC_DERIV   =         9.5414
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4497.083189
+Energy at 0.1000 =     -4487.977536
+Energy at 0.2000 =     -4477.516995
+Energy at 0.3000 =     -4466.930011
+Energy at 0.4000 =     -4456.492988
+Energy at 0.5000 =     -4446.228730
+Energy at 0.6000 =     -4436.064285
+Energy at 0.7000 =     -4425.851551
+Energy at 0.8000 =     -4415.310861
+Energy at 0.9000 =     -4403.828863
+Energy at 1.0000 =     -4389.719518
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       30   TIME(PS) =       0.030  TEMP(K) =   354.40  PRESS =     0.0
+ Etot   =     -3524.6298  EKtot   =       942.3002  EPtot      =     -4466.9300
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       721.6969
+ EELEC  =     -5188.6269  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       105.2785
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          42.53
+ SC_Etot=         0.1268  SC_EKtot=         0.1268  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     14.9968  SC_VDW_DER=      -5.9957  SC_DERIV   =         9.0011
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       30   TIME(PS) =       0.030  TEMP(K) =   354.49  PRESS =     0.0
+ Etot   =     -3524.3870  EKtot   =       942.5430  EPtot      =     -4466.9300
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       721.6969
+ EELEC  =     -5188.6269  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       105.2785
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.97
+ SC_Etot=         0.3695  SC_EKtot=         0.3695  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     14.9968  SC_VDW_DER=      -5.9957  SC_DERIV   =         9.0011
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4503.260647
+Energy at 0.1000 =     -4494.251573
+Energy at 0.2000 =     -4483.704289
+Energy at 0.3000 =     -4472.971600
+Energy at 0.4000 =     -4462.365348
+Energy at 0.5000 =     -4451.920936
+Energy at 0.6000 =     -4441.570011
+Energy at 0.7000 =     -4431.164759
+Energy at 0.8000 =     -4420.420407
+Energy at 0.9000 =     -4408.703477
+Energy at 1.0000 =     -4394.243781
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       32   TIME(PS) =       0.032  TEMP(K) =   356.64  PRESS =     0.0
+ Etot   =     -3524.7251  EKtot   =       948.2465  EPtot      =     -4472.9716
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       720.8730
+ EELEC  =     -5193.8446  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       106.8849
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          46.36
+ SC_Etot=         0.1382  SC_EKtot=         0.1382  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     14.8432  SC_VDW_DER=      -6.0625  SC_DERIV   =         8.7807
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       32   TIME(PS) =       0.032  TEMP(K) =   356.72  PRESS =     0.0
+ Etot   =     -3524.4939  EKtot   =       948.4777  EPtot      =     -4472.9716
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       720.8730
+ EELEC  =     -5193.8446  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       106.8849
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.91
+ SC_Etot=         0.3694  SC_EKtot=         0.3694  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     14.8432  SC_VDW_DER=      -6.0625  SC_DERIV   =         8.7807
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4507.986011
+Energy at 0.1000 =     -4498.876537
+Energy at 0.2000 =     -4488.054456
+Energy at 0.3000 =     -4477.004640
+Energy at 0.4000 =     -4466.072119
+Energy at 0.5000 =     -4455.301867
+Energy at 0.6000 =     -4444.627459
+Energy at 0.7000 =     -4433.898884
+Energy at 0.8000 =     -4422.823105
+Energy at 0.9000 =     -4410.739848
+Energy at 1.0000 =     -4395.770542
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       34   TIME(PS) =       0.034  TEMP(K) =   358.10  PRESS =     0.0
+ Etot   =     -3524.8548  EKtot   =       952.1498  EPtot      =     -4477.0046
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       720.9896
+ EELEC  =     -5197.9942  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       110.1285
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          52.39
+ SC_Etot=         0.1562  SC_EKtot=         0.1562  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     15.0367  SC_VDW_DER=      -6.1516  SC_DERIV   =         8.8850
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       34   TIME(PS) =       0.034  TEMP(K) =   358.18  PRESS =     0.0
+ Etot   =     -3524.6418  EKtot   =       952.3628  EPtot      =     -4477.0046
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       720.9896
+ EELEC  =     -5197.9942  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       110.1285
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.86
+ SC_Etot=         0.3692  SC_EKtot=         0.3692  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     15.0367  SC_VDW_DER=      -6.1516  SC_DERIV   =         8.8850
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4508.373159
+Energy at 0.1000 =     -4499.002330
+Energy at 0.2000 =     -4487.757824
+Energy at 0.3000 =     -4476.259936
+Energy at 0.4000 =     -4464.883435
+Energy at 0.5000 =     -4453.679639
+Energy at 0.6000 =     -4442.581493
+Energy at 0.7000 =     -4431.434521
+Energy at 0.8000 =     -4419.934563
+Energy at 0.9000 =     -4407.388192
+Energy at 1.0000 =     -4391.783276
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       36   TIME(PS) =       0.036  TEMP(K) =   357.75  PRESS =     0.0
+ Etot   =     -3525.0489  EKtot   =       951.2110  EPtot      =     -4476.2599
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       722.1471
+ EELEC  =     -5198.4071  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       114.6093
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          60.44
+ SC_Etot=         0.1802  SC_EKtot=         0.1802  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     15.5304  SC_VDW_DER=      -6.2595  SC_DERIV   =         9.2710
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       36   TIME(PS) =       0.036  TEMP(K) =   357.82  PRESS =     0.0
+ Etot   =     -3524.8601  EKtot   =       951.3998  EPtot      =     -4476.2599
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       722.1471
+ EELEC  =     -5198.4071  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       114.6093
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.79
+ SC_Etot=         0.3690  SC_EKtot=         0.3690  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     15.5304  SC_VDW_DER=      -6.2595  SC_DERIV   =         9.2710
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4502.339434
+Energy at 0.1000 =     -4492.608270
+Energy at 0.2000 =     -4480.856309
+Energy at 0.3000 =     -4468.839469
+Energy at 0.4000 =     -4456.958325
+Energy at 0.5000 =     -4445.267566
+Energy at 0.6000 =     -4433.697385
+Energy at 0.7000 =     -4422.087039
+Energy at 0.8000 =     -4410.118881
+Energy at 0.9000 =     -4397.060453
+Energy at 1.0000 =     -4380.739799
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       38   TIME(PS) =       0.038  TEMP(K) =   354.92  PRESS =     0.0
+ Etot   =     -3525.1470  EKtot   =       943.6925  EPtot      =     -4468.8395
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       724.3297
+ EELEC  =     -5193.1691  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       119.7420
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          70.20
+ SC_Etot=         0.2093  SC_EKtot=         0.2093  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     16.2379  SC_VDW_DER=      -6.3818  SC_DERIV   =         9.8561
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       38   TIME(PS) =       0.038  TEMP(K) =   354.98  PRESS =     0.0
+ Etot   =     -3524.9875  EKtot   =       943.8520  EPtot      =     -4468.8395
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       724.3297
+ EELEC  =     -5193.1691  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       119.7420
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.72
+ SC_Etot=         0.3688  SC_EKtot=         0.3688  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     16.2379  SC_VDW_DER=      -6.3818  SC_DERIV   =         9.8561
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4490.401444
+Energy at 0.1000 =     -4480.283775
+Energy at 0.2000 =     -4468.009318
+Energy at 0.3000 =     -4455.468730
+Energy at 0.4000 =     -4443.084602
+Energy at 0.5000 =     -4430.912543
+Energy at 0.6000 =     -4418.878439
+Energy at 0.7000 =     -4406.814019
+Energy at 0.8000 =     -4394.386313
+Energy at 0.9000 =     -4380.818392
+Energy at 1.0000 =     -4363.750284
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       40   TIME(PS) =       0.040  TEMP(K) =   349.87  PRESS =     0.0
+ Etot   =     -3525.2083  EKtot   =       930.2604  EPtot      =     -4455.4687
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       727.3298
+ EELEC  =     -5182.7986  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       124.8852
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          81.22
+ SC_Etot=         0.2421  SC_EKtot=         0.2421  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     17.0597  SC_VDW_DER=      -6.5146  SC_DERIV   =        10.5452
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       40   TIME(PS) =       0.040  TEMP(K) =   349.92  PRESS =     0.0
+ Etot   =     -3525.0818  EKtot   =       930.3869  EPtot      =     -4455.4687
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       727.3298
+ EELEC  =     -5182.7986  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       124.8852
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.65
+ SC_Etot=         0.3686  SC_EKtot=         0.3686  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     17.0597  SC_VDW_DER=      -6.5146  SC_DERIV   =        10.5452
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4475.844392
+Energy at 0.1000 =     -4465.382075
+Energy at 0.2000 =     -4452.632441
+Energy at 0.3000 =     -4439.621648
+Energy at 0.4000 =     -4426.791164
+Energy at 0.5000 =     -4414.195645
+Energy at 0.6000 =     -4401.755630
+Energy at 0.7000 =     -4389.294518
+Energy at 0.8000 =     -4376.462599
+Energy at 0.9000 =     -4362.433210
+Energy at 1.0000 =     -4344.626677
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       42   TIME(PS) =       0.042  TEMP(K) =   343.88  PRESS =     0.0
+ Etot   =     -3525.2901  EKtot   =       914.3316  EPtot      =     -4439.6216
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       730.7489
+ EELEC  =     -5170.3705  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       129.4734
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =          93.06
+ SC_Etot=         0.2774  SC_EKtot=         0.2774  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     17.9106  SC_VDW_DER=      -6.6547  SC_DERIV   =        11.2560
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       42   TIME(PS) =       0.042  TEMP(K) =   343.91  PRESS =     0.0
+ Etot   =     -3525.1991  EKtot   =       914.4225  EPtot      =     -4439.6216
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       730.7489
+ EELEC  =     -5170.3705  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       129.4734
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.58
+ SC_Etot=         0.3684  SC_EKtot=         0.3684  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     17.9106  SC_VDW_DER=      -6.6547  SC_DERIV   =        11.2560
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4463.580562
+Energy at 0.1000 =     -4452.868694
+Energy at 0.2000 =     -4439.735770
+Energy at 0.3000 =     -4426.349203
+Energy at 0.4000 =     -4413.167387
+Energy at 0.5000 =     -4400.242736
+Energy at 0.6000 =     -4387.489795
+Energy at 0.7000 =     -4374.723150
+Energy at 0.8000 =     -4361.575168
+Energy at 0.9000 =     -4347.163968
+Energy at 1.0000 =     -4328.652882
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       44   TIME(PS) =       0.044  TEMP(K) =   338.87  PRESS =     0.0
+ Etot   =     -3525.3466  EKtot   =       901.0026  EPtot      =     -4426.3492
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       734.1805
+ EELEC  =     -5160.5297  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       133.1115
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         105.34
+ SC_Etot=         0.3140  SC_EKtot=         0.3140  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     18.7332  SC_VDW_DER=      -6.8005  SC_DERIV   =        11.9327
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       44   TIME(PS) =       0.044  TEMP(K) =   338.89  PRESS =     0.0
+ Etot   =     -3525.2924  EKtot   =       901.0568  EPtot      =     -4426.3492
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       734.1805
+ EELEC  =     -5160.5297  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       133.1115
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.50
+ SC_Etot=         0.3681  SC_EKtot=         0.3681  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     18.7332  SC_VDW_DER=      -6.8005  SC_DERIV   =        11.9327
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4458.341496
+Energy at 0.1000 =     -4447.510835
+Energy at 0.2000 =     -4434.109677
+Energy at 0.3000 =     -4420.461228
+Energy at 0.4000 =     -4407.040740
+Energy at 0.5000 =     -4393.897773
+Energy at 0.6000 =     -4380.940574
+Energy at 0.7000 =     -4367.974617
+Energy at 0.8000 =     -4354.613228
+Energy at 0.9000 =     -4339.913217
+Energy at 1.0000 =     -4320.735560
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       46   TIME(PS) =       0.046  TEMP(K) =   336.62  PRESS =     0.0
+ Etot   =     -3525.4355  EKtot   =       895.0257  EPtot      =     -4420.4612
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       737.2377
+ EELEC  =     -5157.6990  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.6155
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         117.77
+ SC_Etot=         0.3511  SC_EKtot=         0.3511  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     19.4960  SC_VDW_DER=      -6.9522  SC_DERIV   =        12.5438
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       46   TIME(PS) =       0.046  TEMP(K) =   336.63  PRESS =     0.0
+ Etot   =     -3525.4187  EKtot   =       895.0426  EPtot      =     -4420.4612
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       737.2377
+ EELEC  =     -5157.6990  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.6155
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.43
+ SC_Etot=         0.3679  SC_EKtot=         0.3679  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     19.4960  SC_VDW_DER=      -6.9522  SC_DERIV   =        12.5438
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4462.541521
+Energy at 0.1000 =     -4451.743917
+Energy at 0.2000 =     -4438.194018
+Energy at 0.3000 =     -4424.397759
+Energy at 0.4000 =     -4410.849800
+Energy at 0.5000 =     -4397.597105
+Energy at 0.6000 =     -4384.541673
+Energy at 0.7000 =     -4371.479723
+Energy at 0.8000 =     -4358.004369
+Energy at 0.9000 =     -4343.104128
+Energy at 1.0000 =     -4323.281790
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       48   TIME(PS) =       0.048  TEMP(K) =   338.08  PRESS =     0.0
+ Etot   =     -3525.4922  EKtot   =       898.9055  EPtot      =     -4424.3978
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       739.7255
+ EELEC  =     -5164.1232  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.9940
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         130.22
+ SC_Etot=         0.3882  SC_EKtot=         0.3882  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     20.1828  SC_VDW_DER=      -7.1112  SC_DERIV   =        13.0716
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       48   TIME(PS) =       0.048  TEMP(K) =   338.07  PRESS =     0.0
+ Etot   =     -3525.5127  EKtot   =       898.8851  EPtot      =     -4424.3978
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       739.7255
+ EELEC  =     -5164.1232  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.9940
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.35
+ SC_Etot=         0.3677  SC_EKtot=         0.3677  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     20.1828  SC_VDW_DER=      -7.1112  SC_DERIV   =        13.0716
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4475.738087
+Energy at 0.1000 =     -4465.134116
+Energy at 0.2000 =     -4451.544076
+Energy at 0.3000 =     -4437.698477
+Energy at 0.4000 =     -4424.117006
+Energy at 0.5000 =     -4410.845313
+Energy at 0.6000 =     -4397.779596
+Energy at 0.7000 =     -4384.706827
+Energy at 0.8000 =     -4371.198664
+Energy at 0.9000 =     -4356.167351
+Energy at 1.0000 =     -4335.689275
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       50   TIME(PS) =       0.050  TEMP(K) =   343.01  PRESS =     0.0
+ Etot   =     -3525.6909  EKtot   =       912.0076  EPtot      =     -4437.6985
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       741.4583
+ EELEC  =     -5179.1568  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.4139
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         142.66
+ SC_Etot=         0.4252  SC_EKtot=         0.4252  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     20.7844  SC_VDW_DER=      -7.2798  SC_DERIV   =        13.5046
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       50   TIME(PS) =       0.050  TEMP(K) =   342.98  PRESS =     0.0
+ Etot   =     -3525.7486  EKtot   =       911.9498  EPtot      =     -4437.6985
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       741.4583
+ EELEC  =     -5179.1568  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.4139
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.27
+ SC_Etot=         0.3675  SC_EKtot=         0.3675  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     20.7844  SC_VDW_DER=      -7.2798  SC_DERIV   =        13.5046
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4494.417579
+Energy at 0.1000 =     -4484.164522
+Energy at 0.2000 =     -4470.619594
+Energy at 0.3000 =     -4456.795424
+Energy at 0.4000 =     -4443.245324
+Energy at 0.5000 =     -4430.015867
+Energy at 0.6000 =     -4416.998288
+Energy at 0.7000 =     -4403.970455
+Energy at 0.8000 =     -4390.481281
+Energy at 0.9000 =     -4375.357871
+Energy at 1.0000 =     -4354.168449
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       52   TIME(PS) =       0.052  TEMP(K) =   350.10  PRESS =     0.0
+ Etot   =     -3525.9234  EKtot   =       930.8721  EPtot      =     -4456.7954
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.4284
+ EELEC  =     -5199.2238  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.1614
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         155.18
+ SC_Etot=         0.4625  SC_EKtot=         0.4625  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     21.2978  SC_VDW_DER=      -7.4598  SC_DERIV   =        13.8380
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       52   TIME(PS) =       0.052  TEMP(K) =   350.07  PRESS =     0.0
+ Etot   =     -3526.0187  EKtot   =       930.7767  EPtot      =     -4456.7954
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.4284
+ EELEC  =     -5199.2238  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.1614
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.20
+ SC_Etot=         0.3672  SC_EKtot=         0.3672  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     21.2978  SC_VDW_DER=      -7.4598  SC_DERIV   =        13.8380
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4513.516290
+Energy at 0.1000 =     -4503.751741
+Energy at 0.2000 =     -4490.299659
+Energy at 0.3000 =     -4476.527239
+Energy at 0.4000 =     -4463.032319
+Energy at 0.5000 =     -4449.865325
+Energy at 0.6000 =     -4436.913613
+Energy at 0.7000 =     -4423.946178
+Energy at 0.8000 =     -4410.487889
+Energy at 0.9000 =     -4395.271190
+Energy at 1.0000 =     -4373.260441
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       54   TIME(PS) =       0.054  TEMP(K) =   357.42  PRESS =     0.0
+ Etot   =     -3526.1993  EKtot   =       950.3279  EPtot      =     -4476.5272
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.7465
+ EELEC  =     -5219.2737  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.6460
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         167.89
+ SC_Etot=         0.5004  SC_EKtot=         0.5004  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     21.7318  SC_VDW_DER=      -7.6525  SC_DERIV   =        14.0794
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       54   TIME(PS) =       0.054  TEMP(K) =   357.37  PRESS =     0.0
+ Etot   =     -3526.3328  EKtot   =       950.1945  EPtot      =     -4476.5272
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.7465
+ EELEC  =     -5219.2737  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.6460
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.12
+ SC_Etot=         0.3670  SC_EKtot=         0.3670  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     21.7318  SC_VDW_DER=      -7.6525  SC_DERIV   =        14.0794
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4527.798977
+Energy at 0.1000 =     -4518.632725
+Energy at 0.2000 =     -4505.278623
+Energy at 0.3000 =     -4491.544461
+Energy at 0.4000 =     -4478.084907
+Energy at 0.5000 =     -4464.957480
+Energy at 0.6000 =     -4452.046823
+Energy at 0.7000 =     -4439.113311
+Energy at 0.8000 =     -4425.656471
+Energy at 0.9000 =     -4410.304197
+Energy at 1.0000 =     -4387.307282
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       56   TIME(PS) =       0.056  TEMP(K) =   362.98  PRESS =     0.0
+ Etot   =     -3526.4341  EKtot   =       965.1103  EPtot      =     -4491.5445
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.5559
+ EELEC  =     -5234.1003  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.3057
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         180.85
+ SC_Etot=         0.5391  SC_EKtot=         0.5391  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.1048  SC_VDW_DER=      -7.8584  SC_DERIV   =        14.2464
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       56   TIME(PS) =       0.056  TEMP(K) =   362.91  PRESS =     0.0
+ Etot   =     -3526.6065  EKtot   =       964.9380  EPtot      =     -4491.5445
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.5559
+ EELEC  =     -5234.1003  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.3057
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.04
+ SC_Etot=         0.3667  SC_EKtot=         0.3667  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.1048  SC_VDW_DER=      -7.8584  SC_DERIV   =        14.2464
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4533.721193
+Energy at 0.1000 =     -4525.243221
+Energy at 0.2000 =     -4511.959058
+Energy at 0.3000 =     -4498.216256
+Energy at 0.4000 =     -4484.739339
+Energy at 0.5000 =     -4471.596196
+Energy at 0.6000 =     -4458.669900
+Energy at 0.7000 =     -4445.712451
+Energy at 0.8000 =     -4432.196776
+Energy at 0.9000 =     -4416.636162
+Energy at 1.0000 =     -4392.443848
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       58   TIME(PS) =       0.058  TEMP(K) =   365.42  PRESS =     0.0
+ Etot   =     -3526.6272  EKtot   =       971.5890  EPtot      =     -4498.2163
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.0225
+ EELEC  =     -5240.2387  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.4723
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         193.98
+ SC_Etot=         0.5782  SC_EKtot=         0.5782  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.4333  SC_VDW_DER=      -8.0779  SC_DERIV   =        14.3555
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       58   TIME(PS) =       0.058  TEMP(K) =   365.34  PRESS =     0.0
+ Etot   =     -3526.8389  EKtot   =       971.3773  EPtot      =     -4498.2163
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.0225
+ EELEC  =     -5240.2387  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.4723
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.96
+ SC_Etot=         0.3665  SC_EKtot=         0.3665  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.4333  SC_VDW_DER=      -8.0779  SC_DERIV   =        14.3555
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4530.420652
+Energy at 0.1000 =     -4522.725345
+Energy at 0.2000 =     -4509.472890
+Energy at 0.3000 =     -4495.664119
+Energy at 0.4000 =     -4482.106866
+Energy at 0.5000 =     -4468.882626
+Energy at 0.6000 =     -4455.874012
+Energy at 0.7000 =     -4442.824901
+Energy at 0.8000 =     -4429.180446
+Energy at 0.9000 =     -4413.329212
+Energy at 1.0000 =     -4387.707604
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       60   TIME(PS) =       0.060  TEMP(K) =   364.41  PRESS =     0.0
+ Etot   =     -3526.7541  EKtot   =       968.9100  EPtot      =     -4495.6641
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       741.4324
+ EELEC  =     -5237.0965  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.2493
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         207.01
+ SC_Etot=         0.6170  SC_EKtot=         0.6170  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.7218  SC_VDW_DER=      -8.3116  SC_DERIV   =        14.4102
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       60   TIME(PS) =       0.060  TEMP(K) =   364.31  PRESS =     0.0
+ Etot   =     -3527.0049  EKtot   =       968.6592  EPtot      =     -4495.6641
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       741.4324
+ EELEC  =     -5237.0965  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.2493
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.88
+ SC_Etot=         0.3663  SC_EKtot=         0.3663  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.7218  SC_VDW_DER=      -8.3116  SC_DERIV   =        14.4102
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4519.929323
+Energy at 0.1000 =     -4513.141834
+Energy at 0.2000 =     -4499.895973
+Energy at 0.3000 =     -4485.976511
+Energy at 0.4000 =     -4472.288455
+Energy at 0.5000 =     -4458.930074
+Energy at 0.6000 =     -4445.784606
+Energy at 0.7000 =     -4432.588079
+Energy at 0.8000 =     -4418.756781
+Energy at 0.9000 =     -4402.544373
+Energy at 1.0000 =     -4375.253997
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       62   TIME(PS) =       0.062  TEMP(K) =   360.74  PRESS =     0.0
+ Etot   =     -3526.8159  EKtot   =       959.1606  EPtot      =     -4485.9765
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.9256
+ EELEC  =     -5226.9021  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       138.5107
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         219.56
+ SC_Etot=         0.6544  SC_EKtot=         0.6544  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.9650  SC_VDW_DER=      -8.5605  SC_DERIV   =        14.4045
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       62   TIME(PS) =       0.062  TEMP(K) =   360.63  PRESS =     0.0
+ Etot   =     -3527.1043  EKtot   =       958.8722  EPtot      =     -4485.9765
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.9256
+ EELEC  =     -5226.9021  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       138.5107
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.81
+ SC_Etot=         0.3661  SC_EKtot=         0.3661  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.9650  SC_VDW_DER=      -8.5605  SC_DERIV   =        14.4045
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4506.578306
+Energy at 0.1000 =     -4500.871268
+Energy at 0.2000 =     -4487.632856
+Energy at 0.3000 =     -4473.583499
+Energy at 0.4000 =     -4459.739703
+Energy at 0.5000 =     -4446.219563
+Energy at 0.6000 =     -4432.907972
+Energy at 0.7000 =     -4419.533370
+Energy at 0.8000 =     -4405.482128
+Energy at 0.9000 =     -4388.862677
+Energy at 1.0000 =     -4359.668854
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       64   TIME(PS) =       0.064  TEMP(K) =   356.04  PRESS =     0.0
+ Etot   =     -3526.9201  EKtot   =       946.6634  EPtot      =     -4473.5835
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.5693
+ EELEC  =     -5214.1528  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       140.0014
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         231.24
+ SC_Etot=         0.6893  SC_EKtot=         0.6893  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.1596  SC_VDW_DER=      -8.8259  SC_DERIV   =        14.3337
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       64   TIME(PS) =       0.064  TEMP(K) =   355.92  PRESS =     0.0
+ Etot   =     -3527.2436  EKtot   =       946.3399  EPtot      =     -4473.5835
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.5693
+ EELEC  =     -5214.1528  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       140.0014
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.74
+ SC_Etot=         0.3659  SC_EKtot=         0.3659  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.1596  SC_VDW_DER=      -8.8259  SC_DERIV   =        14.3337
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4495.319336
+Energy at 0.1000 =     -4490.920106
+Energy at 0.2000 =     -4477.718854
+Energy at 0.3000 =     -4463.549061
+Energy at 0.4000 =     -4449.553586
+Energy at 0.5000 =     -4435.873252
+Energy at 0.6000 =     -4422.395514
+Energy at 0.7000 =     -4408.841434
+Energy at 0.8000 =     -4394.566398
+Energy at 0.9000 =     -4377.523063
+Energy at 1.0000 =     -4346.197692
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       66   TIME(PS) =       0.066  TEMP(K) =   352.25  PRESS =     0.0
+ Etot   =     -3526.9668  EKtot   =       936.5823  EPtot      =     -4463.5491
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.3527
+ EELEC  =     -5203.9018  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       141.4326
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         241.76
+ SC_Etot=         0.7206  SC_EKtot=         0.7206  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.3105  SC_VDW_DER=      -9.1093  SC_DERIV   =        14.2012
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       66   TIME(PS) =       0.066  TEMP(K) =   352.12  PRESS =     0.0
+ Etot   =     -3527.3217  EKtot   =       936.2273  EPtot      =     -4463.5491
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.3527
+ EELEC  =     -5203.9018  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       141.4326
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.68
+ SC_Etot=         0.3657  SC_EKtot=         0.3657  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.3105  SC_VDW_DER=      -9.1093  SC_DERIV   =        14.2012
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4490.287532
+Energy at 0.1000 =     -4487.479906
+Energy at 0.2000 =     -4474.371584
+Energy at 0.3000 =     -4460.116879
+Energy at 0.4000 =     -4446.000430
+Energy at 0.5000 =     -4432.188516
+Energy at 0.6000 =     -4418.571927
+Energy at 0.7000 =     -4404.864465
+Energy at 0.8000 =     -4390.389423
+Energy at 0.9000 =     -4372.932933
+Energy at 1.0000 =     -4339.251020
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       68   TIME(PS) =       0.068  TEMP(K) =   350.93  PRESS =     0.0
+ Etot   =     -3527.0394  EKtot   =       933.0775  EPtot      =     -4460.1169
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.2070
+ EELEC  =     -5200.3239  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       142.5406
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         250.85
+ SC_Etot=         0.7477  SC_EKtot=         0.7477  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.4291  SC_VDW_DER=      -9.4117  SC_DERIV   =        14.0174
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       68   TIME(PS) =       0.068  TEMP(K) =   350.79  PRESS =     0.0
+ Etot   =     -3527.4216  EKtot   =       932.6953  EPtot      =     -4460.1169
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.2070
+ EELEC  =     -5200.3239  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       142.5406
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.63
+ SC_Etot=         0.3655  SC_EKtot=         0.3655  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.4291  SC_VDW_DER=      -9.4117  SC_DERIV   =        14.0174
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4492.946976
+Energy at 0.1000 =     -4492.066647
+Energy at 0.2000 =     -4479.124760
+Energy at 0.3000 =     -4464.838628
+Energy at 0.4000 =     -4450.650628
+Energy at 0.5000 =     -4436.755030
+Energy at 0.6000 =     -4423.046581
+Energy at 0.7000 =     -4409.231844
+Energy at 0.8000 =     -4394.600883
+Energy at 0.9000 =     -4376.762475
+Energy at 1.0000 =     -4340.494090
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       70   TIME(PS) =       0.070  TEMP(K) =   352.65  PRESS =     0.0
+ Etot   =     -3527.1832  EKtot   =       937.6554  EPtot      =     -4464.8386
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.0355
+ EELEC  =     -5204.8742  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       143.1417
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         258.37
+ SC_Etot=         0.7701  SC_EKtot=         0.7701  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.5312  SC_VDW_DER=      -9.7339  SC_DERIV   =        13.7972
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       70   TIME(PS) =       0.070  TEMP(K) =   352.50  PRESS =     0.0
+ Etot   =     -3527.5880  EKtot   =       937.2506  EPtot      =     -4464.8386
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.0355
+ EELEC  =     -5204.8742  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       143.1417
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.59
+ SC_Etot=         0.3654  SC_EKtot=         0.3654  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.5312  SC_VDW_DER=      -9.7339  SC_DERIV   =        13.7972
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4501.427716
+Energy at 0.1000 =     -4502.852416
+Energy at 0.2000 =     -4490.156176
+Energy at 0.3000 =     -4475.898466
+Energy at 0.4000 =     -4461.695620
+Energy at 0.5000 =     -4447.772203
+Energy at 0.6000 =     -4434.027376
+Energy at 0.7000 =     -4420.160389
+Energy at 0.8000 =     -4405.426945
+Energy at 0.9000 =     -4387.247807
+Energy at 1.0000 =     -4348.147823
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       72   TIME(PS) =       0.072  TEMP(K) =   356.76  PRESS =     0.0
+ Etot   =     -3527.3327  EKtot   =       948.5658  EPtot      =     -4475.8985
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       739.8555
+ EELEC  =     -5215.7540  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       143.1673
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         264.24
+ SC_Etot=         0.7876  SC_EKtot=         0.7876  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.6351  SC_VDW_DER=     -10.0757  SC_DERIV   =        13.5594
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       72   TIME(PS) =       0.072  TEMP(K) =   356.60  PRESS =     0.0
+ Etot   =     -3527.7550  EKtot   =       948.1434  EPtot      =     -4475.8985
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       739.8555
+ EELEC  =     -5215.7540  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       143.1673
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.55
+ SC_Etot=         0.3653  SC_EKtot=         0.3653  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.6351  SC_VDW_DER=     -10.0757  SC_DERIV   =        13.5594
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4511.735636
+Energy at 0.1000 =     -4515.873147
+Energy at 0.2000 =     -4503.494958
+Energy at 0.3000 =     -4489.320004
+Energy at 0.4000 =     -4475.154602
+Energy at 0.5000 =     -4461.255588
+Energy at 0.6000 =     -4447.526810
+Energy at 0.7000 =     -4433.660046
+Energy at 0.8000 =     -4418.875559
+Energy at 0.9000 =     -4400.395878
+Energy at 1.0000 =     -4358.193756
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       74   TIME(PS) =       0.074  TEMP(K) =   361.70  PRESS =     0.0
+ Etot   =     -3527.6168  EKtot   =       961.7032  EPtot      =     -4489.3200
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       739.7976
+ EELEC  =     -5229.1176  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       142.6662
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         268.49
+ SC_Etot=         0.8003  SC_EKtot=         0.8003  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.7605  SC_VDW_DER=     -10.4358  SC_DERIV   =        13.3248
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       74   TIME(PS) =       0.074  TEMP(K) =   361.53  PRESS =     0.0
+ Etot   =     -3528.0519  EKtot   =       961.2681  EPtot      =     -4489.3200
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       739.7976
+ EELEC  =     -5229.1176  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       142.6662
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.52
+ SC_Etot=         0.3652  SC_EKtot=         0.3652  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.7605  SC_VDW_DER=     -10.4358  SC_DERIV   =        13.3248
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4519.076338
+Energy at 0.1000 =     -4526.356052
+Energy at 0.2000 =     -4514.353230
+Energy at 0.3000 =     -4500.302207
+Energy at 0.4000 =     -4486.214563
+Energy at 0.5000 =     -4472.380944
+Energy at 0.6000 =     -4458.709962
+Energy at 0.7000 =     -4444.885685
+Energy at 0.8000 =     -4430.091951
+Energy at 0.9000 =     -4411.343509
+Energy at 1.0000 =     -4365.735311
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       76   TIME(PS) =       0.076  TEMP(K) =   365.74  PRESS =     0.0
+ Etot   =     -3527.8575  EKtot   =       972.4447  EPtot      =     -4500.3022
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.0106
+ EELEC  =     -5240.3128  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       141.7632
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         271.27
+ SC_Etot=         0.8086  SC_EKtot=         0.8086  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.9248  SC_VDW_DER=     -10.8119  SC_DERIV   =        13.1129
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       76   TIME(PS) =       0.076  TEMP(K) =   365.57  PRESS =     0.0
+ Etot   =     -3528.3010  EKtot   =       972.0013  EPtot      =     -4500.3022
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.0106
+ EELEC  =     -5240.3128  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       141.7632
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.49
+ SC_Etot=         0.3651  SC_EKtot=         0.3651  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     23.9248  SC_VDW_DER=     -10.8119  SC_DERIV   =        13.1129
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4519.806567
+Energy at 0.1000 =     -4530.675693
+Energy at 0.2000 =     -4519.084927
+Energy at 0.3000 =     -4505.180715
+Energy at 0.4000 =     -4491.193989
+Energy at 0.5000 =     -4477.450229
+Energy at 0.6000 =     -4463.862677
+Energy at 0.7000 =     -4450.107393
+Energy at 0.8000 =     -4435.330937
+Energy at 0.9000 =     -4416.331403
+Energy at 1.0000 =     -4366.968960
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       78   TIME(PS) =       0.078  TEMP(K) =   367.55  PRESS =     0.0
+ Etot   =     -3527.9248  EKtot   =       977.2559  EPtot      =     -4505.1807
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.6269
+ EELEC  =     -5245.8076  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       140.6341
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         272.85
+ SC_Etot=         0.8133  SC_EKtot=         0.8133  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     24.1403  SC_VDW_DER=     -11.2011  SC_DERIV   =        12.9392
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       78   TIME(PS) =       0.078  TEMP(K) =   367.38  PRESS =     0.0
+ Etot   =     -3528.3730  EKtot   =       976.8077  EPtot      =     -4505.1807
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       740.6269
+ EELEC  =     -5245.8076  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       140.6341
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.48
+ SC_Etot=         0.3651  SC_EKtot=         0.3651  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     24.1403  SC_VDW_DER=     -11.2011  SC_DERIV   =        12.9392
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4512.854074
+Energy at 0.1000 =     -4527.787270
+Energy at 0.2000 =     -4516.626188
+Energy at 0.3000 =     -4502.874780
+Energy at 0.4000 =     -4488.996132
+Energy at 0.5000 =     -4475.351054
+Energy at 0.6000 =     -4461.857099
+Energy at 0.7000 =     -4448.181978
+Energy at 0.8000 =     -4433.434220
+Energy at 0.9000 =     -4414.186675
+Energy at 1.0000 =     -4360.662798
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       80   TIME(PS) =       0.080  TEMP(K) =   366.60  PRESS =     0.0
+ Etot   =     -3528.1465  EKtot   =       974.7283  EPtot      =     -4502.8748
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       741.6134
+ EELEC  =     -5244.4882  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       139.4421
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         273.65
+ SC_Etot=         0.8157  SC_EKtot=         0.8157  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     24.4114  SC_VDW_DER=     -11.6005  SC_DERIV   =        12.8109
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       80   TIME(PS) =       0.080  TEMP(K) =   366.43  PRESS =     0.0
+ Etot   =     -3528.5971  EKtot   =       974.2777  EPtot      =     -4502.8748
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       741.6134
+ EELEC  =     -5244.4882  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       139.4421
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.47
+ SC_Etot=         0.3651  SC_EKtot=         0.3651  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     24.4114  SC_VDW_DER=     -11.6005  SC_DERIV   =        12.8109
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4499.126675
+Energy at 0.1000 =     -4518.649079
+Energy at 0.2000 =     -4507.920101
+Energy at 0.3000 =     -4494.313696
+Energy at 0.4000 =     -4480.537060
+Energy at 0.5000 =     -4466.986381
+Energy at 0.6000 =     -4453.583039
+Energy at 0.7000 =     -4439.986021
+Energy at 0.8000 =     -4425.265069
+Energy at 0.9000 =     -4405.758650
+Energy at 1.0000 =     -4347.580125
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       82   TIME(PS) =       0.082  TEMP(K) =   363.32  PRESS =     0.0
+ Etot   =     -3528.2959  EKtot   =       966.0178  EPtot      =     -4494.3137
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.9976
+ EELEC  =     -5237.3113  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       138.3211
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         274.21
+ SC_Etot=         0.8173  SC_EKtot=         0.8173  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     24.7361  SC_VDW_DER=     -12.0079  SC_DERIV   =        12.7282
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       82   TIME(PS) =       0.082  TEMP(K) =   363.15  PRESS =     0.0
+ Etot   =     -3528.7481  EKtot   =       965.5656  EPtot      =     -4494.3137
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       742.9976
+ EELEC  =     -5237.3113  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       138.3211
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.47
+ SC_Etot=         0.3651  SC_EKtot=         0.3651  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     24.7361  SC_VDW_DER=     -12.0079  SC_DERIV   =        12.7282
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4481.864987
+Energy at 0.1000 =     -4506.593365
+Energy at 0.2000 =     -4496.290209
+Energy at 0.3000 =     -4482.812355
+Energy at 0.4000 =     -4469.123227
+Energy at 0.5000 =     -4455.654155
+Energy at 0.6000 =     -4442.329755
+Energy at 0.7000 =     -4428.799857
+Energy at 0.8000 =     -4414.094512
+Energy at 0.9000 =     -4394.306875
+Energy at 1.0000 =     -4330.853417
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       84   TIME(PS) =       0.084  TEMP(K) =   358.98  PRESS =     0.0
+ Etot   =     -3528.3464  EKtot   =       954.4659  EPtot      =     -4482.8124
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       744.7439
+ EELEC  =     -5227.5563  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.3559
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         275.14
+ SC_Etot=         0.8201  SC_EKtot=         0.8201  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     25.1092  SC_VDW_DER=     -12.4224  SC_DERIV   =        12.6867
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       84   TIME(PS) =       0.084  TEMP(K) =   358.80  PRESS =     0.0
+ Etot   =     -3528.8015  EKtot   =       954.0109  EPtot      =     -4482.8124
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       744.7439
+ EELEC  =     -5227.5563  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.3559
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.49
+ SC_Etot=         0.3651  SC_EKtot=         0.3651  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     25.1092  SC_VDW_DER=     -12.4224  SC_DERIV   =        12.6867
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4465.263036
+Energy at 0.1000 =     -4495.965574
+Energy at 0.2000 =     -4486.081332
+Energy at 0.3000 =     -4472.713173
+Energy at 0.4000 =     -4459.094487
+Energy at 0.5000 =     -4445.691468
+Energy at 0.6000 =     -4432.431324
+Energy at 0.7000 =     -4418.954229
+Energy at 0.8000 =     -4404.249322
+Energy at 0.9000 =     -4384.150469
+Energy at 1.0000 =     -4314.620452
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       86   TIME(PS) =       0.086  TEMP(K) =   355.12  PRESS =     0.0
+ Etot   =     -3528.4917  EKtot   =       944.2215  EPtot      =     -4472.7132
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       746.5922
+ EELEC  =     -5219.3054  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.5713
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         277.19
+ SC_Etot=         0.8262  SC_EKtot=         0.8262  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     25.5245  SC_VDW_DER=     -12.8452  SC_DERIV   =        12.6793
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       86   TIME(PS) =       0.086  TEMP(K) =   354.95  PRESS =     0.0
+ Etot   =     -3528.9527  EKtot   =       943.7604  EPtot      =     -4472.7132
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       746.5922
+ EELEC  =     -5219.3054  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.5713
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.51
+ SC_Etot=         0.3652  SC_EKtot=         0.3652  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     25.5245  SC_VDW_DER=     -12.8452  SC_DERIV   =        12.6793
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4452.152800
+Energy at 0.1000 =     -4489.820405
+Energy at 0.2000 =     -4480.350883
+Energy at 0.3000 =     -4467.072706
+Energy at 0.4000 =     -4453.506072
+Energy at 0.5000 =     -4440.152018
+Energy at 0.6000 =     -4426.939712
+Energy at 0.7000 =     -4413.499107
+Energy at 0.8000 =     -4398.776786
+Energy at 0.9000 =     -4378.329359
+Energy at 1.0000 =     -4301.670234
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       88   TIME(PS) =       0.088  TEMP(K) =   352.95  PRESS =     0.0
+ Etot   =     -3528.6358  EKtot   =       938.4369  EPtot      =     -4467.0727
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       748.3015
+ EELEC  =     -5215.3742  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.9792
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         281.14
+ SC_Etot=         0.8380  SC_EKtot=         0.8380  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     25.9783  SC_VDW_DER=     -13.2783  SC_DERIV   =        12.7000
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       88   TIME(PS) =       0.088  TEMP(K) =   352.77  PRESS =     0.0
+ Etot   =     -3529.1086  EKtot   =       937.9641  EPtot      =     -4467.0727
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       748.3015
+ EELEC  =     -5215.3742  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.9792
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.54
+ SC_Etot=         0.3653  SC_EKtot=         0.3653  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     25.9783  SC_VDW_DER=     -13.2783  SC_DERIV   =        12.7000
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4443.079240
+Energy at 0.1000 =     -4489.012445
+Energy at 0.2000 =     -4479.960581
+Energy at 0.3000 =     -4466.754850
+Energy at 0.4000 =     -4453.223354
+Energy at 0.5000 =     -4439.902412
+Energy at 0.6000 =     -4426.722616
+Energy at 0.7000 =     -4413.303079
+Energy at 0.8000 =     -4398.545767
+Energy at 0.9000 =     -4377.707770
+Energy at 1.0000 =     -4292.539442
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       90   TIME(PS) =       0.090  TEMP(K) =   352.77  PRESS =     0.0
+ Etot   =     -3528.7790  EKtot   =       937.9758  EPtot      =     -4466.7548
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       749.6960
+ EELEC  =     -5216.4509  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.5627
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         287.85
+ SC_Etot=         0.8580  SC_EKtot=         0.8580  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     26.4674  SC_VDW_DER=     -13.7242  SC_DERIV   =        12.7432
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       90   TIME(PS) =       0.090  TEMP(K) =   352.59  PRESS =     0.0
+ Etot   =     -3529.2717  EKtot   =       937.4832  EPtot      =     -4466.7548
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       749.6960
+ EELEC  =     -5216.4509  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.5627
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.58
+ SC_Etot=         0.3654  SC_EKtot=         0.3654  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     26.4674  SC_VDW_DER=     -13.7242  SC_DERIV   =        12.7432
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4436.210658
+Energy at 0.1000 =     -4492.113911
+Energy at 0.2000 =     -4483.486741
+Energy at 0.3000 =     -4470.334754
+Energy at 0.4000 =     -4456.819647
+Energy at 0.5000 =     -4443.514005
+Energy at 0.6000 =     -4430.349430
+Energy at 0.7000 =     -4416.933554
+Energy at 0.8000 =     -4402.121342
+Energy at 0.9000 =     -4380.844207
+Energy at 1.0000 =     -4285.367019
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       92   TIME(PS) =       0.092  TEMP(K) =   354.05  PRESS =     0.0
+ Etot   =     -3528.9715  EKtot   =       941.3632  EPtot      =     -4470.3348
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       750.5378
+ EELEC  =     -5220.8725  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.3385
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         298.18
+ SC_Etot=         0.8888  SC_EKtot=         0.8888  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     26.9921  SC_VDW_DER=     -14.1844  SC_DERIV   =        12.8077
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       92   TIME(PS) =       0.092  TEMP(K) =   353.85  PRESS =     0.0
+ Etot   =     -3529.4948  EKtot   =       940.8400  EPtot      =     -4470.3348
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       750.5378
+ EELEC  =     -5220.8725  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.3385
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.63
+ SC_Etot=         0.3655  SC_EKtot=         0.3655  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     26.9921  SC_VDW_DER=     -14.1844  SC_DERIV   =        12.8077
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4428.346204
+Energy at 0.1000 =     -4496.442582
+Energy at 0.2000 =     -4488.248851
+Energy at 0.3000 =     -4475.129169
+Energy at 0.4000 =     -4461.608521
+Energy at 0.5000 =     -4448.297189
+Energy at 0.6000 =     -4435.127470
+Energy at 0.7000 =     -4421.694890
+Energy at 0.8000 =     -4406.804864
+Energy at 0.9000 =     -4385.034061
+Energy at 1.0000 =     -4276.923911
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       94   TIME(PS) =       0.094  TEMP(K) =   355.78  PRESS =     0.0
+ Etot   =     -3529.1584  EKtot   =       945.9707  EPtot      =     -4475.1292
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       750.7453
+ EELEC  =     -5225.8745  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.3376
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         313.01
+ SC_Etot=         0.9330  SC_EKtot=         0.9330  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.5544  SC_VDW_DER=     -14.6590  SC_DERIV   =        12.8954
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       94   TIME(PS) =       0.094  TEMP(K) =   355.57  PRESS =     0.0
+ Etot   =     -3529.7257  EKtot   =       945.4034  EPtot      =     -4475.1292
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       750.7453
+ EELEC  =     -5225.8745  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.3376
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.69
+ SC_Etot=         0.3657  SC_EKtot=         0.3657  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     27.5544  SC_VDW_DER=     -14.6590  SC_DERIV   =        12.8954
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4416.550953
+Energy at 0.1000 =     -4499.725187
+Energy at 0.2000 =     -4491.971299
+Energy at 0.3000 =     -4478.857421
+Energy at 0.4000 =     -4465.304216
+Energy at 0.5000 =     -4451.961275
+Energy at 0.6000 =     -4438.761328
+Energy at 0.7000 =     -4425.287184
+Energy at 0.8000 =     -4410.292191
+Energy at 0.9000 =     -4387.967573
+Energy at 1.0000 =     -4264.248448
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       96   TIME(PS) =       0.096  TEMP(K) =   357.12  PRESS =     0.0
+ Etot   =     -3529.3226  EKtot   =       949.5348  EPtot      =     -4478.8574
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       750.2371
+ EELEC  =     -5229.0946  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.6112
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         333.19
+ SC_Etot=         0.9932  SC_EKtot=         0.9932  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     28.1590  SC_VDW_DER=     -15.1465  SC_DERIV   =        13.0124
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       96   TIME(PS) =       0.096  TEMP(K) =   356.88  PRESS =     0.0
+ Etot   =     -3529.9499  EKtot   =       948.9075  EPtot      =     -4478.8574
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       750.2371
+ EELEC  =     -5229.0946  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       135.6112
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.75
+ SC_Etot=         0.3659  SC_EKtot=         0.3659  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     28.1590  SC_VDW_DER=     -15.1465  SC_DERIV   =        13.0124
+ ------------------------------------------------------------------------------
+
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4398.789325
+Energy at 0.1000 =     -4500.779811
+Energy at 0.2000 =     -4493.469809
+Energy at 0.3000 =     -4480.332080
+Energy at 0.4000 =     -4466.716461
+Energy at 0.5000 =     -4453.313366
+Energy at 0.6000 =     -4440.055676
+Energy at 0.7000 =     -4426.512905
+Energy at 0.8000 =     -4411.383984
+Energy at 0.9000 =     -4388.443714
+Energy at 1.0000 =     -4245.334391
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =       98   TIME(PS) =       0.098  TEMP(K) =   357.63  PRESS =     0.0
+ Etot   =     -3529.4357  EKtot   =       950.8964  EPtot      =     -4480.3321
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       749.1330
+ EELEC  =     -5229.4651  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.1891
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         359.48
+ SC_Etot=         1.0715  SC_EKtot=         1.0715  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     28.8100  SC_VDW_DER=     -15.6447  SC_DERIV   =        13.1653
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =       98   TIME(PS) =       0.098  TEMP(K) =   357.37  PRESS =     0.0
+ Etot   =     -3530.1412  EKtot   =       950.1909  EPtot      =     -4480.3321
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       749.1330
+ EELEC  =     -5229.4651  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.1891
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.83
+ SC_Etot=         0.3661  SC_EKtot=         0.3661  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     28.8100  SC_VDW_DER=     -15.6447  SC_DERIV   =        13.1653
+ ------------------------------------------------------------------------------
+
+wrapping first mol.:      -28.10150        0.00000        0.00000
+
+MBAR Energy analysis:
+Energy at 0.0000 =     -4373.723675
+Energy at 0.1000 =     -4499.377648
+Energy at 0.2000 =     -4492.516093
+Energy at 0.3000 =     -4479.326027
+Energy at 0.4000 =     -4465.619736
+Energy at 0.5000 =     -4452.129690
+Energy at 0.6000 =     -4438.788586
+Energy at 0.7000 =     -4425.152087
+Energy at 0.8000 =     -4409.862606
+Energy at 0.9000 =     -4386.248487
+Energy at 1.0000 =     -4218.978802
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =   357.19  PRESS =     0.0
+ Etot   =     -3529.6106  EKtot   =       949.7155  EPtot      =     -4479.3260
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       747.4471
+ EELEC  =     -5226.7731  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.0565
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         392.44
+ SC_Etot=         1.1698  SC_EKtot=         1.1698  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     29.5096  SC_VDW_DER=     -16.1512  SC_DERIV   =        13.3584
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =   356.89  PRESS =     0.0
+ Etot   =     -3530.4139  EKtot   =       948.9121  EPtot      =     -4479.3260
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       747.4471
+ EELEC  =     -5226.7731  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       137.0565
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         122.91
+ SC_Etot=         0.3664  SC_EKtot=         0.3664  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     29.5096  SC_VDW_DER=     -16.1512  SC_DERIV   =        13.3584
+ ------------------------------------------------------------------------------
+
+
+| TI region  1
+
+
+      A V E R A G E S   O V E R      50 S T E P S
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =   352.41  PRESS =     0.0
+ Etot   =     -3525.9980  EKtot   =       937.0089  EPtot      =     -4463.0069
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       738.8637
+ EELEC  =     -5201.8706  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.1882
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         171.16
+ SC_Etot=         0.5102  SC_EKtot=         0.5102  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.4180  SC_VDW_DER=      -8.7900  SC_DERIV   =        13.6280
+ ------------------------------------------------------------------------------
+
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =     9.18  PRESS =     0.0
+ Etot   =         2.0682  EKtot   =        24.4008  EPtot      =        25.7394
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         8.4359
+ EELEC  =        27.3605  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        16.8006
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         101.16
+ SC_Etot=         0.3016  SC_EKtot=         0.3016  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      4.0600  SC_VDW_DER=       3.0434  SC_DERIV   =         2.9609
+ ------------------------------------------------------------------------------
+
+
+| TI region  2
+
+
+      A V E R A G E S   O V E R      50 S T E P S
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =   352.36  PRESS =     0.0
+ Etot   =     -3526.1407  EKtot   =       936.8662  EPtot      =     -4463.0069
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       738.8637
+ EELEC  =     -5201.8706  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.1882
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =         123.28
+ SC_Etot=         0.3675  SC_EKtot=         0.3675  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=     22.4180  SC_VDW_DER=      -8.7900  SC_DERIV   =        13.6280
+ ------------------------------------------------------------------------------
+
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =     9.13  PRESS =     0.0
+ Etot   =         2.3470  EKtot   =        24.2698  EPtot      =        25.7394
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         8.4359
+ EELEC  =        27.3605  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =        16.8006
+ ------------------------------------------------------------------------------
+
+  Softcore part of the system:       1 atoms,       TEMP(K)    =           0.62
+ SC_Etot=         0.0018  SC_EKtot=         0.0018  SC_EPtot   =         0.0000
+ SC_BOND=         0.0000  SC_ANGLE=         0.0000  SC_DIHED   =         0.0000
+ SC_14NB=         0.0000  SC_14EEL=         0.0000  SC_VDW     =         0.0000
+ SC_EEL =         0.0000
+ SC_RES_DIST=     0.0000  SC_RES_ANG=       0.0000  SC_RES_TORS=         0.0000
+ SC_EEL_DER=      4.0600  SC_VDW_DER=       3.0434  SC_DERIV   =         2.9609
+ ------------------------------------------------------------------------------
+
+
+      DV/DL, AVERAGES OVER      50 STEPS
+
+
+ NSTEP =      100   TIME(PS) =       0.100  TEMP(K) =     9.13  PRESS =     0.0
+ Etot   =         0.0000  EKtot   =         0.0000  EPtot      =       136.1882
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =        -2.3153
+ EELEC  =       124.8755  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =       136.1882
+ ------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|  NonSetup CPU Time in Major Routines:
+|
+|     Routine           Sec        %
+|     ------------------------------
+|     Nonbond           0.31   94.08
+|     Bond              0.00    0.00
+|     Angle             0.00    0.00
+|     Dihedral          0.00    0.00
+|     Shake             0.00    0.12
+|     RunMD             0.02    5.70
+|     Other             0.00    0.10
+|     ------------------------------
+|     Total             0.33
+
+|  PME Nonbond Pairlist CPU Time:
+|
+|     Routine              Sec        %
+|     ---------------------------------
+|     Set Up Cit           0.00    0.00
+|     Build List           0.00    0.00
+|     ---------------------------------
+|     Total                0.00    0.00
+
+|  PME Direct Force CPU Time:
+|
+|     Routine              Sec        %
+|     ---------------------------------
+|     NonBonded Calc       0.00    0.00
+|     Exclude Masked       0.00    0.00
+|     Other                0.00    0.05
+|     ---------------------------------
+|     Total                0.00    0.05
+
+|  PME Reciprocal Force CPU Time:
+|
+|     Routine              Sec        %
+|     ---------------------------------
+|     1D bspline           0.00    0.00
+|     Grid Charges         0.00    0.00
+|     Scalar Sum           0.00    0.00
+|     Gradient Sum         0.00    0.00
+|     FFT                  0.00    0.00
+|     ---------------------------------
+|     Total                0.00    0.00
+
+|  Final Performance Info:
+|     -----------------------------------------------------
+|     Average timings for last     100 steps:
+|     Elapsed(s) =       0.33 Per Step(ms) =       3.30
+|         ns/day =      26.18   seconds/ns =    3299.74
+|
+|     Average timings for all steps:
+|     Elapsed(s) =       0.33 Per Step(ms) =       3.30
+|         ns/day =      26.18   seconds/ns =    3299.74
+|     -----------------------------------------------------
+
+|  Setup CPU time:            0.54 seconds
+|  NonSetup CPU time:         0.33 seconds
+|  Total CPU time:            0.87 seconds     0.00 hours
+
+|  Setup wall time:           1    seconds
+|  NonSetup wall time:        0    seconds
+|  Total wall time:           1    seconds     0.00 hours

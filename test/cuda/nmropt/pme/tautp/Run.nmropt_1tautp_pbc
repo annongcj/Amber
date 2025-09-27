@@ -1,0 +1,71 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP Test tautp scaling using nmropt in explicit solvent
+#TEST-PURPOSE regression basic
+#TEST-STATE   ok
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+Test of tautp scale using nmropt=1 with pbc
+ &cntrl
+  nstlim=20,dt=0.001,ntt=1,
+  ntpr=1,
+  igb=0,ntb=1,
+  tempi=0.0,
+  nmropt=1,
+  ig=71277,
+ /
+ &ewald
+   nfft1=64, nfft2=64, nfft3=64,netfrc=0,
+ /
+ &wt type='TAUTP', istep1=0, istep2=10,
+                   value1=0.5, value2=1.0
+ /
+ &wt type='TAUTP', istep1=11, istep2=20,
+                   value1=1.0, value2=3.0
+ /
+ &wt type='END' /
+EOF
+
+set output = mdout
+set output_save = $output.GPU_$1
+
+touch dummy
+$DO_PARALLEL $sander -O -p ../myoglobin_pbc.prmtop -c ../myoglobin_pbc.inpcrd -i mdin -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../../dacdif -r 1.0e-7 $output_save $output
+else
+  #4 sig figs
+  ../../../../dacdif -r 1.0e-4 $output_save $output
+endif
+
+
+/bin/rm -f mdin restrt mdinfo profile_mpi logfile dummy
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+

@@ -1,0 +1,68 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+Pep-GaMD equilibration simulation
+ &cntrl
+    imin=0,irest=1,ntx=5,
+    ntt=3,gamma_ln=1.0,tempi=300.0,temp0=300.0,ig=221,         
+    cut=9.0,nstlim=20,dt=0.002,ntc=2,ntf=1,        
+    ntpr=1,ntwx=1,ntwr=1,   
+    ntxo=2,ioutfm=1,iwrap=1,ntwprt = 998,
+    barostat=1,ntp=1,pres0=1.0,taup=0.5,
+      
+    igamd = 17, iEP = 2, iED=1,irest_gamd = 0,
+    ntcmd = 700000, nteb = 28000000, ntave = 140000,
+    ntcmdprep = 280000, ntebprep = 280000,
+    sigma0P = 2.0, sigma0D = 6.0,sigma0B=6.0,
+
+    icfe = 1, ifsc = 1, gti_cpu_output = 0, gti_add_sc = 1,
+    timask1 = ':1-56&!@H=', scmask1 = ':1-56&!@H=',
+    bgpro2atm=869,edpro2atm=1736,
+    timask2 = '', scmask2 = '',
+ /
+EOF
+
+set output = mdout.pme.ppigamd
+
+set output_save = $output.GPU_$1
+
+touch dummy
+$DO_PARALLEL $sander -O -i mdin -c inpcrd -o $output <dummy || goto error
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../dacdif -a 0.001 $output_save $output
+else
+  #2 sig figs
+  ../../../dacdif -a 0.02 $output_save $output
+endif
+
+/bin/rm -f mdin logfile mdinfo dummy mdcrd restrt gamd.log gamd-restart.dat
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+

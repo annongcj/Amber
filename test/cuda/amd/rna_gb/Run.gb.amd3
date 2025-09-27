@@ -1,0 +1,67 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+  test of gen. Born, on a stretch of A-RNA AMD=3
+ &cntrl                                                                        
+   nstlim=10, cut=9999.0, igb=1, saltcon=0.1,
+   ntpr=1, ntwx=1, ntwr=1, ntt=0,
+   ntx=5, irest=1, 
+   ntc=2, ntf=2, tol=0.000001,
+   dt=0.001, ntb=0,
+   iamd=3,
+   ethreshp=-3962,alphap=128,
+   ethreshd=490,alphad=14, ig=71277,
+ /
+EOF
+
+set output = mdout.gb.amd3
+
+set output_save = $output.GPU_$1
+
+touch dummy
+$DO_PARALLEL $sander -O -i mdin -c md4.x -o $output <dummy || goto error
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../dacdif -r 1.0e-7 $output_save $output
+else
+  #4 sig figs
+  ../../../dacdif -r 1.1e-4 $output_save $output
+endif
+
+/bin/rm -f mdin logfile mdinfo dummy mdcrd restrt amd.log
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+
+

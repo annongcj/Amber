@@ -1,0 +1,54 @@
+module test_xray_debug_dump
+  use xray_pure_utils, only : real_kind
+  use xray_unit_cell_module, only : unit_cell_t
+  use funit
+  
+  implicit none
+  
+  integer, parameter, private :: rk = real_kind
+  real(real_kind), parameter :: tolerance = 1e-10  ! Absolute tolerance
+
+contains
+  
+  @test
+  subroutine test_read()
+    use xray_debug_dump_module, only : xray_load => load, xray_dump => dump
+    use xray_interface2_module, only : init, finalize
+    implicit none
+    
+    integer, allocatable :: hkl(:, :)
+    complex(real_kind), allocatable :: Fobs(:)
+    real(real_kind), allocatable :: sigma_Fobs(:)
+    logical, allocatable :: work_flag(:)
+    type(unit_cell_t) :: unit_cell
+    real(real_kind), allocatable :: scatter_coefficients(:, :, :) ! Fourier coefficients (2,n_scatter_coeffs,n_scatter_types)
+    real(real_kind), allocatable :: atom_b_factor(:)
+    real(real_kind), allocatable :: atom_occupancy(:)
+    integer, allocatable :: atom_scatter_type(:)
+    logical, allocatable :: atom_is_not_bulk(:)
+    integer, allocatable :: atom_atomic_number(:)
+    
+    call xray_load("data/xray_dump_mini.txt", &
+        & hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
+        & atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk, atom_atomic_number &
+        &)
+    
+    call xray_dump("data/xray_dump_mini_2.txt", &
+        & hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
+        & atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk, atom_atomic_number &
+        &)
+    
+    call init(&
+        & "ml", "afonine-2013", &
+        & hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
+        & atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk, atom_atomic_number, &
+        & 1, 1, 1, &
+        & 1.0_real_kind, 1.0_real_kind, &
+        & 1.11_rk, 0.9_rk &
+        &)
+    call finalize()
+  
+  end subroutine test_read
+
+end module test_xray_debug_dump
+

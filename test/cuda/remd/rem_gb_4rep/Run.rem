@@ -1,0 +1,53 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  echo "This test is set up for parallel simulations only!"
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+  set numprocs = `$DO_PARALLEL ../../../numprocs`
+  if( "$numprocs" != 4 ) then
+    echo "This test requires 4 GPUs."
+    exit(0)
+  endif
+endif
+
+cat > groupfile <<EOF
+#
+#
+-O -i rem.in.000 -p ala3.top -c mdrestrt -o rem.out.000
+-O -i rem.in.001 -p ala3.top -c mdrestrt -o rem.out.001
+-O -i rem.in.002 -p ala3.top -c mdrestrt -o rem.out.002
+-O -i rem.in.003 -p ala3.top -c mdrestrt -o rem.out.003
+#
+EOF
+
+touch dummy
+$DO_PARALLEL $sander -O -ng 4 -groupfile groupfile -rem 1 -remlog rem.log <dummy || goto error
+../../../dacdif rem.out.000.$1.save rem.out.000
+../../../dacdif rem.log.$1.save rem.log
+
+/bin/rm -f restrt* mdinfo* mdcrd* rem.type rem.out.00[123] groupfile logfile*
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+
+

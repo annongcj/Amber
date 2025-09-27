@@ -1,0 +1,63 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP softcore MBAR VDW change
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+ 
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+#if( $?TESTsander ) then
+#    set sander = $TESTsander
+#else
+    set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+#endif
+
+cat > mdin <<EOF
+NPT test
+ &cntrl
+  imin = 0,     ntx = 5,        irest = 1,
+  ntpr = 5,     ntwr = 0,       ntwx = 0, ioutfm=0, ntxo=1,
+  ntf = 1,      ntc = 2,
+  ntb = 2,      cut = 9.0,
+  nstlim = 20,  dt = 0.001,
+  temp0 = 300.0,        ntt = 3,        gamma_ln = 2,
+  ntp = 1,      pres0 = 1.0,    taup = 2.0,
+  icfe=1,       clambda = 0.6,
+  ifsc=1,
+  barostat = 2, mcbarint = 10,
+  timask1=':BNZ',
+  timask2=':PHN',
+  scmask1=':BNZ@H6',
+  scmask2=':PHN@H6,O1',
+  crgmask=':BNZ@H6 | :PHN@H6,O1', tishake=1, ig=71277,
+  mbar_lambda = 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
+  mbar_states = 11,
+  ifmbar = 1,
+  bar_intervall = 5,
+ /
+EOF
+
+set output = complex.out
+
+set output_save = $output.$1
+
+touch dummy
+$sander -O -i mdin -c rst -p mbar.prmtop -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../../../dacdif -r 1.0e-7 $output_save $output
+else
+  #5 sig figs
+  ../../../../../dacdif -r 1.0e-5 $output_save $output
+endif
+
+/bin/rm -f mdin mdinfo dummy restrt
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+

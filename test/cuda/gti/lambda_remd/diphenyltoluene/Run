@@ -1,0 +1,43 @@
+#!/bin/sh
+#TEST-PROGRAM pmemd.cuda 
+#TEST-DESCRIP Test lambda-Hamiltonian replica exchange calc, NPT
+#TEST-PURPOSE regression, basic
+#TEST-STATE   partially documented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+#MPIRUN="mpiexec --oversubscribe"
+MPIRUN="mpiexec "
+
+mkdir -p current
+rm current/*
+
+if [ -z "$DO_PARALLEL" ] ; then
+   DO_PARALLEL="$MPIRUN -np 4"
+fi
+
+# Common setup. Sets PREC_MODEL, IG, and TESTsander if necessary
+#. $AMBERHOME/test/cuda/remd/CudaRemdCommon.sh
+#. $AMBERHOME/test/program_error.sh
+
+
+n=12
+
+$MPIRUN -np $n  "$AMBERHOME/bin/pmemd.cuda_${PREC_MODEL}.MPI" -O -ng $n -groupfile groupfile -rem 3 -remlog rem.log 
+
+
+$AMBERHOME/test/dacdif -r 3e-4 rem.log.saved rem.log
+
+gap=`echo "scale=8; 1/11.0" | bc -l `
+gaussPoints=`seq 0 $gap 1 `
+echo "lambda values: " $gaussPoints
+
+gaussPoints='0.00000000 0.09090909 0.18181818 0.27272727 0.36363636 0.45454545 0.54545455 0.63636364 0.72727273 0.81818182 0.90909091 1.00000000'
+
+for lambda in $gaussPoints
+do
+  $AMBERHOME/test/dacdif -r 3e-4 current.saved/stdsc_$lambda.mdout.$PREC_MODEL current/stdsc_$lambda.mdout
+done
+rm -rf $myDir
+exit 0
+

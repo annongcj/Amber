@@ -1,0 +1,95 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP Testing nmropt restraints on 2 distances with 1 center-of-mass group
+#TEST-PURPOSE pedagogical regession advanced
+#TEST-STATE   ok
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+#Note that the GPU mdout files may have fundamental errors when diffed with the
+#CPU mdouts due to GPU not supporting Jarzynski and COM tests
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+ Test of nmropt on distance
+ &cntrl                                                                        
+   ig=71277,       ! set random seed
+   nstlim = 20,    ! 50 steps
+   igb=0,          ! explicit solvent
+   ntb=1,          ! periodic boundaries
+   ntx=5,          ! restart with velocities
+   irest=1, 
+   ntpr=1,         ! mdout
+   dt=0.001,       ! 1 fs timestep
+   ntt=1,          ! T coupling
+   ntc=2,          ! use shake
+   ntf=2,  
+   ntwr = 200,     ! dont write rst
+   nmropt=1, 
+ /
+ &ewald
+  nfft1=64,
+  nfft2=64,
+  nfft3=64,netfrc=0,
+ /
+ &wt type='DUMPFREQ', istep1=2  /
+ &wt type='END'   /
+DISANG=multi-distr6av_pbc.RST
+DUMPAVE=multi-distr6av_pbc_vs_t
+LISTIN=POUT
+LISTOUT=POUT
+/
+EOF
+
+cat > multi-distr6av_pbc.RST << EOF
+# bond restraints for ex solv
+&rst  iat=1237, -1, r1=2.72, r2=7.72, r3=7.72, r4=18.72, rk2 = 10.0, rk3 = 10.0,  igr1=0, igr2=1169,1170, 1171, 1175, 1189  /
+&rst  iat= -1, 1243, ir6=1, r1=2.72, r2=7.72, r3=7.72, r4=18.72, rk2 = 10.0, rk3 = 10.0,  igr1=1169,1170, 1171, 1175, 1189  /
+&rst  iat= -1, -1, r1=2.72, r2=7.72, r3=7.72, r4=18.72, rk2 = 10.0, rk3 = 10.0,  igr1=1169,1170, 1171, 1175, 1189, igr2 = 1237, 1238, 1239  /
+&rst  iat=1000,1050, r1=0.2, r2=2.0, r3=7.0, r4=20.0, rk2 = 10.0, rk3 = 10.0, /
+&rst  iat=570,600, r1=0.2, r2=2.1, r3=7.1, r4=20.1, rk2 = 3.1, rk3 = 7.5, /
+EOF
+
+set output = multi-distr6av_pbc
+set vs_t_output = multi-distr6av_pbc_vs_t
+set output_save = $output.GPU_$1  
+set vs_t_output_save = $vs_t_output.GPU_$1  
+
+touch dummy
+$DO_PARALLEL $sander -O -p ../myoglobin_pbc.prmtop -c ../myoglobin_pbc.inpcrd -i mdin -o $output <dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../../../dacdif -r 1.0e-7 $output_save $output
+  ../../../../dacdif -r 1.0e-7 $vs_t_output_save $vs_t_output
+else
+  #4 sig figs
+  ../../../../dacdif -r 3.1e-3 $output_save $output
+  ../../../../dacdif -r 1.0e-4 $vs_t_output_save $vs_t_output
+endif
+
+
+/bin/rm -f mdin restrt mdinfo  multi-distCOM-multi-dist_pbc.RST logfile profile_mpi dummy
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+

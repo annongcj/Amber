@@ -1,0 +1,68 @@
+#!/bin/csh -f
+#TEST-PROGRAM pmemd.cuda
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1
+  endif
+else
+  if( $?TESTsander ) then
+      set sander = $TESTsander
+  else
+      set sander = ${AMBERHOME}/bin/pmemd.cuda_$1.MPI
+  endif
+endif
+
+cat > mdin <<EOF
+Myoglobin MD
+ &cntrl
+  imin=0,irest=1,ntx=5,
+  nstlim=20,dt=0.002,ntb=0,
+  ntf=2,ntc=2,tol=0.000001,
+  ntpr=1, ntwx=0, ntwr=25,
+  cut=9999.0, rgbmax=15.0,
+  igb=8,ntt=0,nscm=0, ig=71277,
+ /
+EOF
+
+set output = myoglobin_md_igb8.out
+
+set output_save = $output.GPU_$1
+
+touch dummy
+$DO_PARALLEL $sander -O -o $output -r restrt -x mdcrd -p prmtop.igb78 < dummy || goto error
+
+#Use different dacdif tolerances based on precision model.
+if ( "$1" == "DPFP" ) then
+  #7 sig figs
+  ../../dacdif -r 1.0e-7 $output_save $output
+else
+  #4 sig figs
+  ../../dacdif -r 1.1e-4 $output_save $output
+endif
+
+/bin/rm -f mdin logfile mdinfo dummy restrt mdcrd
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,61 @@
+#!/bin/bash
+#TEST-PROGRAM pmemd.cuda 
+#TEST-DESCRIP Test lambda-Hamiltonian replica exchange calc, NPT
+#TEST-PURPOSE regression, basic
+#TEST-STATE   partially documented
+
+#$1 = PREC_MODEL
+#$2 = NETCDF
+#MPIRUN="mpiexec --oversubscribe"
+MPIRUN="mpiexec "
+
+if [ -z "$DO_PARALLEL" ] ; then
+   DO_PARALLEL="$MPIRUN -np 4"
+fi
+
+# Common setup. Sets PREC_MODEL, IG, and TESTsander if necessary
+source $AMBERHOME/test/cuda/remd/CudaRemdCommon.sh
+source $AMBERHOME/test/program_error.sh
+
+# Check that MPIRUN can run with the desired # processes
+numprocs=`$DO_PARALLEL $AMBERHOME/test/numprocs`
+if [ $NREP -gt $numprocs ] ; then
+  echo "Cannot execute multi-window lambda with the desired number of processes ($NREP), skipping."
+  exit 0
+fi
+
+n=$NREP
+Title "$n-window lambda replica PME NPT  test."
+
+myDir="$n-windows"
+mkdir -p $myDir 
+
+# Clean any previous test output.
+cd $myDir
+CleanFiles mdin.* inpcrd.* md.o.* groupfile mdcrd.* md.x* mden* mdinfo*
+cd ..
+
+gap=`echo "1/($n-1)" | bc -l `
+gaussPoints=`seq 0 $gap 1 `
+echo "lambda values: " $gaussPoints
+
+file="mdin"
+file1="inpcrd"
+
+for lambda in $gaussPoints
+do
+  cp $file $myDir/$file.$lambda
+  cp $file1 $myDir/$file1.$lambda
+  sed -i s/clambda.*/clambda=$lambda\,/  $myDir/$file.$lambda
+  echo " -AllowSmallBox -O -i $myDir/$file.$lambda -p prmtop -c $myDir/inpcrd.$lambda  -o $myDir/md.o.$lambda  -x $myDir/mdcrd.$lambda -r $myDir/md.x.$lambda  -e $myDir/mden.$lambda -inf $myDir/mdinfo.$lambda " >> $myDir/groupfile
+done
+
+$MPIRUN -np $n "$AMBERHOME/bin/pmemd.cuda_${PREC_MODEL}.MPI" -O -ng $n -groupfile $myDir/groupfile -rem 3 -remlog $myDir/rem.log < /dev/null || error
+
+$AMBERHOME/test/dacdif -r 2e-4 $myDir.saved/rem.log $myDir/rem.log
+for lambda in $gaussPoints
+do
+  $AMBERHOME/test/dacdif -r 2e-4 $myDir.saved/md.o.$PREC_MODEL.$lambda $myDir/md.o.$lambda
+done
+##rm -rf $myDir
+exit 0

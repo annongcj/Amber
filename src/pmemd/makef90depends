@@ -1,0 +1,79 @@
+#!/usr/bin/perl
+
+# This script should be used to make the file "f90depends" any time the
+# source code is changed.  Then, "f90depends" will be included in the
+# makefile.  The script identifies dependencies associated with module use
+# statements, f90-style include statements, and cpp style include statements.
+# A specific format for module use statements is required:
+# "use <source file basename>_mod"; eg. to use the file foo_dat.f90, you
+# would specify "use foo_dat_mod".  The dependencies will be linked through
+# the used module object; this avoids requirements on module file endings, and
+# the object and module files are always produced during compilation
+# anyway (assuming the source is for a module, that is). Both f90 and cpp style 
+# include statements are supported, but require use of enclosing double quotes
+# ("filename").  CPP dependencies won't be picked up for system headers if they
+# are enclosed in brackets (<filename>), per the usual conventions.
+
+use File::Basename;
+use Cwd;
+
+foreach $F90_filename ( <*.F90> )
+{
+
+  ($file_basename) = $F90_filename =~ /(.+)\.F90$/;
+  open(HDL, "$F90_filename") || die "$F90_filename could not be opened!\n";
+  while (<HDL>)
+  {
+    next unless /^ *use +.*_mod/;
+    ($dep_basename) = / *use +(.*?)_mod/;
+    if (!defined $dep_list{$file_basename, $dep_basename})
+    {
+      printf "$file_basename\$(OSFX): $dep_basename\$(OSFX)\n";
+    }
+    $dep_list{$file_basename,$dep_basename} = 1;
+  }
+  close(HDL);
+  open(HDL, "$F90_filename");
+  while (<HDL>)
+  {
+    next unless /^ *#?include +".*"/;
+    ($dep_name) = / *#?include +"(.*)"/;
+    if (!defined $dep_list{$file_basename, $dep_name})
+    {
+      printf "$file_basename\$(OSFX): $dep_name\n";
+    }
+    $dep_list{$file_basename, $dep_name} = 1;
+  }
+  close(HDL);
+  
+
+  $i_filename = join('.', $file_basename, 'i');
+#  printf ">>>>>$i_filename \n";
+  $ret = open(HDL, "$i_filename");
+  if ($ret)
+  {
+    while (<HDL>)
+    {
+      next unless /^ *use +.*_mod/;
+      ($dep_basename) = / *use +(.*?)_mod/;
+      if (!defined $dep_list{$file_basename, $dep_basename})
+      {
+        printf "$file_basename\$(OSFX): $dep_basename\$(OSFX)\n";
+      }
+      $dep_list{$file_basename,$dep_basename} = 1;
+    }
+    close(HDL);
+    open(HDL, "$i_filename");
+    while (<HDL>)
+    {
+      next unless /^ *#?include +".*"/;
+      ($dep_name) = / *#?include +"(.*)"/;
+      if (!defined $dep_list{$file_basename, $dep_name})
+      {
+        printf "$file_basename\$(OSFX): $dep_name\n";
+      }
+      $dep_list{$file_basename, $dep_name} = 1;
+    }
+    close(HDL)
+  }
+}

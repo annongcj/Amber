@@ -1,0 +1,51 @@
+#!/bin/sh
+
+if [ -n "$TESTsander" ]; then
+   sander=$TESTsander
+else
+   sander=../../../../bin/pmemd.cuda_$1
+fi
+
+if [ -n "$DO_PARALLEL" ]; then
+   echo "Xray capabilities are currently disabled in pmemd.MPI"
+   echo "   Skipping test"
+   exit 0
+fi
+
+cat <<EOF > mdin
+Test of MD with Xray restraints
+ &cntrl
+  ntx = 1, irest = 0, ntxo=1, ntpr = 1,
+  ntc = 1, ntf = 1, tol = 0.000001,
+  cut = 8.0, tempi=0.0, ig=12345,
+  nstlim = 6, dt = 0.001,
+  imin=0,
+ &end
+ &xray
+   spacegroup_name='P1',
+   pdb_infile = '../../../xray/480d/480d_uc.pdb',
+   pdb_read_coordinates=.false.,
+   reflection_infile = '../../../xray/480d/480d-sf.dat',
+   atom_selection_mask = ':*',
+   xray_weight = 1000.,
+   fft_method = 0,
+   bulk_solvent_model='simple',
+   k_sol=0.35, b_sol=40.0,
+   resolution_high = 1.50,
+   mask_update_frequency = 2,
+ &end
+ &ewald
+   nfft1 = 32, nfft2 = 32, nfft3 = 80,
+ &end
+EOF
+
+$sander -O -i mdin -p ../../../xray/480d/480d_uc.parm7 \
+        -c ../../../xray/480d/min1.x -o xray_md1.out
+
+grep "Etot" xray_md1.out > Energy.dat
+grep "Exray" xray_md1.out >> Energy.dat
+
+/bin/rm -f mdin mdinfo restrt
+
+../../../dacdif Energy.dat_${1}.save Energy.dat
+

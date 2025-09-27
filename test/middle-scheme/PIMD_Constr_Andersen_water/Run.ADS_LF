@@ -1,0 +1,53 @@
+#!/bin/csh -f
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+if( ! $?AMBERHOME ) then
+  echo "environment variable AMBERHOME is not set! exiting......"
+  exit(0)
+else
+  echo "AMBERHOME is $AMBERHOME"
+endif
+
+set sander = "$AMBERHOME/bin/sander.MPI"
+
+if( ! -x $sander ) then
+  echo "No such file: $sander"
+  exit(0)
+endif
+
+if( ! $?DO_PARALLEL ) then
+  echo " environment variable DO_PARALLEL is not set!"
+  echo " Exiting this test"
+  exit(0)
+endif
+
+  set numprocs = `$DO_PARALLEL ../../numprocs`
+  if ( "$numprocs" == 4 || "$numprocs" == 8 || "$numprocs" == 12 || "$numprocs" == 16 || "$numprocs" == 20 || "$numprocs" == 24 || "$numprocs" == 28 || "$numprocs" == 32 ) then
+      goto runtest
+  else if ( $?MP_PROCS)then
+      if ($MP_PROCS == 4 || $MP_PROCS == 8 || $MP_PROCS == 12 || $MP_PROCS == 16 || $MP_PROCS == 20 || $MP_PROCS == 24 || $MP_PROCS == 28 || $MP_PROCS == 32 )then
+        goto runtest
+      endif
+  else
+     echo "skipping PIMD_Constr_Andersen_LFMiddle_water test:"
+     echo "   numprocs must be multiples of 4 and between 4 and 32"
+     exit(0)
+  endif
+
+
+runtest:
+  echo "Testing PIMD with Andersen thermostat"
+  /bin/rm -f pimd_ADS.out
+  $DO_PARALLEL $sander -ng 4 -groupfile gf_pimd_ADS > sander.out || goto error
+  ../../dacdif pimd_ADS.out.save pimd_ADS.out
+  /bin/rm -f bead* sander.out
+
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)

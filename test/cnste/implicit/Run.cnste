@@ -1,0 +1,68 @@
+#!/bin/sh
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+. ../../program_error.sh
+
+if [ -z "$TESTsander" ]; then
+   TESTsander="$AMBERHOME/bin/sander"
+fi
+
+if [ -z "$DO_PARALLEL" ]; then
+   export DO_PARALLEL=" "
+else
+  export numprocs=$(echo $DO_PARALLEL | awk -f ../../numprocs.awk)
+  if [ "$numprocs" -gt 6 ]; then
+      echo " DO_PARALLEL set to $DO_PARALLEL"
+    echo " too many MPI ranks  for this test, exiting (Max MPI ranks = 6)"
+    echo "============================================================"
+    exit 0
+  fi
+fi
+
+
+cat > mdin <<EOF
+ Test of constant E in GB
+ &cntrl                                                                        
+   ig=49,
+   nstlim = 50,
+   cut=30.0, igb=2, saltcon=0.1,
+   ntx=1, irest=0, ntb=0, ntpr=1,
+   dt=0.002, nrespa=1,
+   ntt=1, tempi=300.0, temp0 = 300., tautp=2.0,
+   ntc=2, ntf=2, tol=0.000001,
+   ntwr = 20, 
+   icnste=1, ntcnste=2, solve=-0.28,
+/
+EOF
+
+output=mdout
+
+$DO_PARALLEL $TESTsander -O -i mdin -c min.x  -o $output \
+        -cein cein -ceout ceout -cerestrt cerestrt < /dev/null || error
+
+if [ "`basename $TESTsander`" = "pmemd" -o "`basename $TESTsander`" = "pmemd.MPI"  -o "`basename $TESTsander`" = "pmemd.mic_offload.MPI" ]; then
+if [ "`basename $TESTsander`" = "pmemd.mic_offload.MPI" ]; then
+   ../../dacdif -r 1.0e-05 mdout.pmemd.save mdout
+else   
+   ../../dacdif mdout.pmemd.save mdout
+fi
+else
+   ../../dacdif mdout.save mdout
+fi
+../../dacdif ceout.save ceout
+
+#sed "s/ //g" cerestrt > cerestrt.tmp
+#if [ "`basename $TESTsander`" = "pmemd" -o "`basename $TESTsander`" = "pmemd.MPI"  -o "`basename $TESTsander`" = "pmemd.mic_offload.MPI" ]; then
+#  sed "s/ //g" cerestrt.pmemd.save > cerestrt.pmemd.save.tmp
+#  ../../dacdif cerestrt.pmemd.save.tmp cerestrt.tmp
+#else
+#  sed "s/ //g" cerestrt.save > cerestrt.save.tmp
+#  ../../dacdif cerestrt.save.tmp cerestrt.tmp
+#fi
+
+/bin/rm -f mdin restrt mdinfo profile_mpi
+
+exit 0
